@@ -1,0 +1,7 @@
+{% macro button(label, href=None, type='button', variant='primary', size='large', attrs='') -%}
+  {%- if href -%}
+    <a class="btn btn-{{ variant }} btn-{{ size }}" href="{{ href }}" {{ attrs|safe }}>{{ label }}</a>
+  {%- else -%}
+    <button class="btn btn-{{ variant }} btn-{{ size }}" type="{{ type }}" {{ attrs|safe }}>{{ label }}</button>
+  {%- endif -%}
+{%- endmacro %}

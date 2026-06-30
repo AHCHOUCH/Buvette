@@ -1,0 +1,6 @@
+{% macro table_toolbar(title=None) -%}
+<div class="table-toolbar">
+  {% if title %}<h2>{{ title }}</h2>{% endif %}
+  <div class="table-toolbar-actions">{{ caller() }}</div>
+</div>
+{%- endmacro %}
