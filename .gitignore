@@ -1,0 +1,20 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Virtual environments
+.venv/
+venv/
+
+# Environment and local runtime files
+.env
+instance/*.sqlite3
+*.sqlite3
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
