@@ -1,0 +1,8 @@
+{% macro modal(id, title) -%}
+<div class="modal" id="{{ id }}" role="dialog" aria-modal="true" aria-labelledby="{{ id }}-title" hidden>
+  <div class="modal-panel">
+    <h2 id="{{ id }}-title">{{ title }}</h2>
+    {{ caller() }}
+  </div>
+</div>
+{%- endmacro %}

@@ -1,5 +1,5 @@
-"""Development entrypoint placeholder for Buvette Manager.
+"""Development entrypoint for Buvette Manager."""
 
-The executable Flask entrypoint will be implemented after the application
-factory and first approved feature module are added.
-"""
+from app import create_app
+
+app = create_app()

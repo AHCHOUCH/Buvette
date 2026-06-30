@@ -4,25 +4,25 @@
 
 ## Current phase
 
-The project is in the initial organization phase. The repository contains the complete modular project structure and documentation baseline needed before feature implementation begins. No runtime application behavior, routes, models, or migrations have been implemented yet.
+The project is in the domain-foundation phase. The repository now contains the modular project structure, a minimal application factory, centralized SQLAlchemy models, reusable domain services, shared validators/helpers, and a touch-first UI foundation. Complete business workflows are intentionally not implemented yet.
 
 ## Application structure
 
-- `app/auth`: authentication and session management.
-- `app/dashboard`: landing page and operational overview.
-- `app/clients`: client records and account status.
-- `app/breakfast`: breakfast ordering and tracking workflows.
-- `app/lunch`: lunch ordering and tracking workflows.
-- `app/charges`: charge creation and review.
-- `app/payments`: payment recording and reconciliation.
-- `app/ledger`: account ledger views and transaction history.
-- `app/settings`: application and operational configuration.
-- `app/models`: centralized data models.
+- `app/auth`: authentication and session management placeholders.
+- `app/dashboard`: landing page and operational overview service interface.
+- `app/clients`: client records and account status service interface.
+- `app/breakfast`: future breakfast ordering and tracking workflows.
+- `app/lunch`: future lunch ordering and tracking workflows.
+- `app/charges`: future charge creation and review workflows.
+- `app/payments`: future payment recording and reconciliation workflows.
+- `app/ledger`: ledger preparation and balance services.
+- `app/settings`: application and operational configuration placeholders.
+- `app/models`: centralized `User`, `Client`, and `LedgerEntry` models.
 - `app/services`: shared business services that span features.
-- `app/forms`: shared forms and form helpers.
-- `app/templates`: Jinja templates organized by layout and feature.
-- `app/static`: CSS, JavaScript, and image assets.
-- `app/utils`: cross-cutting utility functions.
+- `app/forms`: shared form helpers and validators.
+- `app/templates`: Jinja templates organized by layout, components, and feature.
+- `app/static`: global CSS and JavaScript assets.
+- `app/utils`: constants, formatting, date, and validation helpers.
 
 ## Architectural principles
 
@@ -31,19 +31,22 @@ The project is in the initial organization phase. The repository contains the co
 3. Business logic belongs in service modules.
 4. Route handlers coordinate requests, responses, validation, and service calls only.
 5. Documentation is part of the application and must be maintained with code changes.
+6. Foundation services expose stable interfaces before workflows are built.
 
 ## Implementation status
 
 - Project directories: created.
-- Feature route modules: created as non-runnable placeholders; no endpoints are implemented yet.
-- Models: directory created; concrete models not yet implemented.
-- Database migrations: directory created; migration tooling not yet initialized.
-- Templates/static assets: directories created; UI not yet implemented.
+- Application factory and SQLAlchemy extension: implemented.
+- Feature route modules: present as non-runnable placeholders; no feature endpoints are implemented yet.
+- Models: `User`, `Client`, and `LedgerEntry` implemented for the shared domain foundation.
+- Database migrations: `migrations/0001_domain_foundation.sql` documents non-destructive table creation.
+- Services: reusable `ClientService`, `LedgerService`, and `DashboardService` interfaces implemented.
+- Templates/static assets: touch-first base layout, reusable components, design-system CSS, and minimal JavaScript utilities implemented.
 - Tests: directory created; test suite not yet implemented.
 
 ## Development workflow
 
-Before implementing any module:
+Before implementing any business workflow:
 
 1. Explain the proposed design.
 2. Explain why it fits the current architecture.

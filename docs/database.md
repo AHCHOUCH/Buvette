@@ -1,24 +1,32 @@
 # Database Design
 
-The database schema has not been implemented yet. Models will be centralized under `app/models`, and migrations will live under `migrations` once migration tooling is initialized. The current project-organization phase introduces no database changes.
+The database foundation now defines the core reusable entities required by future workflows. The migration is non-destructive and creates new tables only.
 
-## Expected core entities
+## Implemented core entities
 
-- User: authenticated application user.
-- Client: person or account receiving meals and charges.
-- Meal item: breakfast or lunch item available for billing.
-- Charge: amount owed by a client for meals or other billable activity.
-- Payment: amount paid by a client.
-- Ledger entry: normalized transaction record used to calculate balances.
-- Setting: operational configuration values.
+### User
 
-## Initial database rules
+Authenticated application user with username, display name, role, active status, and creation timestamp. Users can be linked to ledger entries as the recording user.
 
-1. Ledger balances should be derived from immutable charge and payment history whenever possible.
-2. Payments must be traceable to the client and recording user.
-3. Charges must identify the source workflow, such as breakfast, lunch, or manual charge.
-4. Deletions of financial records should be avoided; prefer reversal or adjustment entries.
+### Client
+
+Client account with name, optional account code, debt limit, active status, notes, and timestamps. Client balances are calculated from ledger entries rather than manually stored.
+
+### Ledger entry
+
+Normalized financial record with client, debit/credit type, amount, running balance, optional reference type/id, description, timestamp, and optional recording user.
+
+## Ledger rules
+
+- Debit entries increase a client balance.
+- Credit entries decrease a client balance.
+- `running_balance` is stored on each prepared row for statement-style display and future audit review.
+- `reference_type` and `reference_id` allow future breakfast, lunch, manual charge, payment, and adjustment workflows to link back to source records.
+
+## Migration
+
+`migrations/0001_domain_foundation.sql` creates `users`, `clients`, and `ledger_entries`, including indexes and basic check constraints. This change is required because all future financial workflows need a stable client and ledger foundation. Impact is additive only; no existing data is modified or removed.
 
 ## Migration policy
 
-Every schema change must include a migration and an update to this document describing the intent and impact of the change. Before implementing a feature, the required database changes must be explained; if none are required, that must be stated explicitly.
+Every schema change must include a migration and an update to this document describing the intent and impact. Before implementing a feature, the required database changes must be explained; if none are required, that must be stated explicitly.
