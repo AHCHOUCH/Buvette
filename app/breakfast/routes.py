@@ -1,15 +1,27 @@
-"""Routes for the breakfast feature."""
+"""Routes for breakfast products and orders."""
+from flask import Blueprint, flash, redirect, render_template, request, url_for
+from flask_login import current_user, login_required
+from app import db
+from app.breakfast.forms import BreakfastProductForm
+from app.breakfast.service import BreakfastService
+from app.clients.service import ClientService
 
-from flask import Blueprint, render_template
-from flask_login import login_required
-
-
-breakfast_bp = Blueprint("breakfast", __name__, url_prefix="/breakfast")
-
-
-@breakfast_bp.get("/")
+breakfast_bp=Blueprint('breakfast', __name__, url_prefix='/breakfast')
+@breakfast_bp.route('/', methods=['GET','POST'])
 @login_required
 def index():
-    """Display a safe placeholder until the breakfast workflow is implemented."""
-
-    return render_template("placeholder.html", module_name="Breakfast")
+    svc=BreakfastService(db.session); client_svc=ClientService(db.session)
+    if request.method=='POST':
+        try:
+            quantities={k.removeprefix('qty_'): v for k,v in request.form.items() if k.startswith('qty_')}
+            svc.create_order(int(request.form['client_id']), quantities, request.form.get('notes',''), getattr(current_user,'id',None)); db.session.commit(); flash('Breakfast order charged.','success'); return redirect(url_for('breakfast.index'))
+        except Exception as exc: db.session.rollback(); flash(str(exc),'danger')
+    return render_template('breakfast/index.html', clients=client_svc.list_clients(), products=svc.products())
+@breakfast_bp.route('/products', methods=['GET','POST'])
+@login_required
+def products():
+    svc=BreakfastService(db.session); form=BreakfastProductForm()
+    if form.validate_on_submit():
+        try: svc.save_product(form.name.data, form.price.data, form.is_active.data); db.session.commit(); flash('Product saved.','success'); return redirect(url_for('breakfast.products'))
+        except ValueError as exc: db.session.rollback(); flash(str(exc),'danger')
+    return render_template('breakfast/products.html', form=form, products=svc.products(False))

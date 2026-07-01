@@ -111,3 +111,24 @@ def _ensure_database(app: Flask) -> None:
                 db_path = Path(app.instance_path) / db_path
             db_path.parent.mkdir(parents=True, exist_ok=True)
         db.create_all()
+        _seed_data()
+
+
+def _seed_data() -> None:
+    """Seed default products, menus, settings, and a sample client for first use."""
+
+    from app.models import BreakfastProduct, Client, LunchMenu, Setting
+
+    if not Client.query.first():
+        db.session.add(Client(name="Walk-in Staff", account_code="STAFF", debt_limit=50, notes="Default staff account"))
+    if not BreakfastProduct.query.first():
+        for name, price in (("Coffee", 1.00), ("Tea", 0.80), ("Croissant", 1.50), ("Sandwich", 2.50)):
+            db.session.add(BreakfastProduct(name=name, price=price, is_active=True))
+    if not LunchMenu.query.first():
+        menus = ((0, "Monday hot meal", 6.00), (1, "Tuesday pasta", 6.00), (2, "Wednesday grill", 6.50), (3, "Thursday special", 6.00), (4, "Friday fish", 7.00))
+        for weekday, name, price in menus:
+            db.session.add(LunchMenu(weekday=weekday, name=name, price=price, is_active=True))
+    for key, value in {"organization_name": "Company Buvette", "debt_warning_default": "50.00", "currency": "€"}.items():
+        if not db.session.get(Setting, key):
+            db.session.add(Setting(key=key, value=value))
+    db.session.commit()

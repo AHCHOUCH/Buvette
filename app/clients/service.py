@@ -1,48 +1,30 @@
 """Reusable client account services."""
 
 from __future__ import annotations
-
 from decimal import Decimal
-
 from app.models import Client
-from app.ledger.service import LedgerService
+from app.repositories.core import ClientRepository, LedgerRepository
 from app.utils.constants import WARNING_DEBT_LIMIT
 from app.utils.formatting import normalize_money
 
 
 class ClientService:
-    """Client helpers shared by account-facing workflows."""
-
-    def __init__(self, session):
-        self.session = session
-
-    def find_client(self, client_id: int) -> Client | None:
-        """Find a client by primary key."""
-
-        return self.session.get(Client, client_id)
-
+    def __init__(self, session): self.session=session; self.repo=ClientRepository(session); self.ledger=LedgerRepository(session)
+    def list_clients(self, q="", include_archived=False): return self.repo.list(q, include_archived)
+    def find_client(self, client_id: int): return self.repo.get(client_id)
+    def balances(self, clients): return {c.id: normalize_money(self.ledger.current_balance(c.id)) for c in clients}
+    def balance(self, client): return normalize_money(self.ledger.current_balance(client.id)) if client and client.id else Decimal("0.00")
+    def save_client(self, *, name, account_code, debt_limit, notes, is_active=True, client=None):
+        name=(name or "").strip(); account_code=(account_code or "").strip() or None
+        if not name: raise ValueError("Client name is required.")
+        if account_code and self.repo.find_duplicate_identifier(account_code, getattr(client, 'id', None)): raise ValueError("Another active client already uses this employee number.")
+        client = client or Client()
+        client.name=name; client.account_code=account_code; client.debt_limit=normalize_money(debt_limit or 0); client.notes=notes; client.is_active=is_active
+        self.repo.save(client); return client
     @staticmethod
-    def calculate_balance(client: Client) -> Decimal:
-        """Calculate the current balance from a client's ledger entries."""
-
-        return LedgerService.calculate_balance(list(client.ledger_entries))
-
-    @classmethod
-    def check_debt_warning(cls, client: Client) -> dict[str, object] | None:
-        """Return a warning when balance exceeds the debt limit; never block."""
-
-        balance = cls.calculate_balance(client)
-        debt_limit = normalize_money(client.debt_limit)
-        if debt_limit > 0 and balance > debt_limit:
-            return {"code": WARNING_DEBT_LIMIT, "balance": balance, "debt_limit": debt_limit, "blocking": False}
+    def check_debt_warning_for_balance(client, balance):
+        debt_limit=normalize_money(client.debt_limit)
+        if debt_limit > 0 and balance > debt_limit: return {"code": WARNING_DEBT_LIMIT, "balance": balance, "debt_limit": debt_limit, "blocking": False}
         return None
-
-    def activate(self, client: Client) -> Client:
-        client.is_active = True
-        self.session.add(client)
-        return client
-
-    def deactivate(self, client: Client) -> Client:
-        client.is_active = False
-        self.session.add(client)
-        return client
+    def archive(self, client): client.is_active=False; self.repo.save(client); return client
+    def restore(self, client): client.is_active=True; self.repo.save(client); return client

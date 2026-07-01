@@ -45,8 +45,10 @@ _USERS = {
 def authenticate(username: str, password: str) -> DemoUser | None:
     """Return an active user when the supplied credentials are valid."""
 
-    user = _USERS.get((username or "").strip().lower())
-    if user and user.is_active and check_password_hash(user.password_hash, password or ""):
+    key = (username or "").strip().lower()
+    user = _USERS.get(key)
+    password_hash = _stored_password_hash(key) or (user.password_hash if user else "")
+    if user and user.is_active and check_password_hash(password_hash, password or ""):
         return user
     return None
 
@@ -61,3 +63,25 @@ def available_demo_users() -> tuple[str, ...]:
     """Return usernames enabled for this foundation build."""
 
     return tuple(_USERS.keys())
+
+
+def _stored_password_hash(username: str) -> str | None:
+    """Read a persisted password hash when the database is available."""
+    from app import db
+    from app.models import Setting
+
+    setting = db.session.get(Setting, f"password_hash_{username}")
+    return setting.value if setting else None
+
+
+def set_password(username: str, password: str) -> None:
+    """Persist an account password hash in settings."""
+    from app import db
+    from app.models import Setting
+
+    key = (username or "").strip().lower()
+    if key in _USERS and password:
+        setting_key = f"password_hash_{key}"
+        setting = db.session.get(Setting, setting_key) or Setting(key=setting_key, value="")
+        setting.value = generate_password_hash(password)
+        db.session.add(setting)
