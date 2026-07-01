@@ -59,3 +59,11 @@ Lunch menus are now organized by week. A `WeeklyMenu` owns seven `DailyMenu` row
 ## Dashboard metrics
 
 Dashboard average activity metrics use the last 30 days as the default period: breakfast orders per day, lunch orders per day, client payments per day, and supplier expenses per day.
+
+## MVP closure rules
+
+- Weekly lunch service days are Monday through Friday. Saturday and Sunday are closed and displayed as closed in cashier and menu screens.
+- New lunch orders use `food_plate_id`, `variant_id`, and snapshot fields as the source of truth; legacy `menu_id` is nullable for compatibility only.
+- Dropdown client selection is the reliable MVP selector for breakfast, lunch, and payments.
+- Empty or invalid selected IDs are validation errors and must not create traceback pages.
+- Historical lunch order amounts and labels remain unchanged after a variant price or label is edited.

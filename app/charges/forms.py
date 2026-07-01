@@ -10,7 +10,7 @@ class SupplierForm(FlaskForm):
     active=BooleanField('Actif', default=True)
     submit=SubmitField('Enregistrer')
 class ManualChargeForm(FlaskForm):
-    supplier_id=SelectField('Fournisseur', coerce=int, validators=[DataRequired()])
+    supplier_id=SelectField('Fournisseur', coerce=lambda v: int(v) if str(v).strip() else None, validators=[DataRequired()])
     amount=DecimalField('Montant', validators=[NumberRange(min=0.01)])
     category=SelectField('Catégorie', choices=[(c,c) for c in CATEGORIES])
     notes=TextAreaField('Notes', validators=[Optional(), Length(max=255)])

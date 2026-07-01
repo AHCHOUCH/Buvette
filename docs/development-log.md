@@ -56,3 +56,12 @@
 - Reworked lunch routes and templates to support week creation, plate creation, copy-previous-week workflow, and touch-friendly plate/variant charging.
 - Grouped navigation by role and permission, changed default currency to DH, improved dashboard metrics, and extended numeric keypad/client selector JavaScript.
 - Added migration `0004_weekly_menu_i18n_permissions.sql` and documented ledger separation and 30-day dashboard averages.
+
+## 2026-07-01 MVP closure pass
+
+- Made `lunch_orders.menu_id` legacy/nullable for weekly plate and variant orders, with migration `0005_mvp_closure.sql` documenting the SQLite table rebuild.
+- Replaced fragile card/hidden client selection on cashier meal/payment flows with standard dropdowns and safe integer parsing to prevent `int("")` tracebacks.
+- Simplified lunch cashier flow to client, plate, variant, confirm; Saturday and Sunday are closed and do not require menu setup.
+- Completed weekly menu editing for working days, including plate and variant activation, labels, and prices while preserving lunch order snapshots.
+- Added translated UI strings for closure screens, logs, breakfast, payments, and menu actions; admin remains French/LTR and cashier Arabic/RTL.
+- Lightened the application theme and documented the final pilot limitations.

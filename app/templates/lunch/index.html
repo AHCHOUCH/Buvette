@@ -2,16 +2,14 @@
 {% block title %}{{ _('lunch.title') }} — {{ _('app.name') }}{% endblock %}
 {% block content %}
 <div class="page-header"><h1>{{ _('lunch.title') }}</h1><a class="btn btn-secondary" href="{{ url_for('lunch.menus') }}">{{ _('lunch.menus.title') }}</a></div>
-{% if not plates %}<div class="alert alert-warning">{{ _('lunch.no_menu_today') }}</div>{% endif %}
+{% if closed_today %}<div class="alert alert-warning">{{ _('lunch.closed_today') }}</div>{% elif not plates %}<div class="alert alert-warning">{{ _('lunch.no_menu_today') }}</div>{% endif %}
 <section class="card touch-flow">
-  <h2>{{ _('client.selector.title') }}</h2>
-  <input class="form-control touch-search" data-client-search placeholder="{{ _('client.selector.search') }}" autocomplete="off">
   <form method="post" id="lunch-charge-form">
-    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="client_id" data-selected-client><input type="hidden" name="plate_id" data-selected-plate><input type="hidden" name="variant_id" data-selected-variant>
-    <div class="client-card-grid" data-client-list>{% for client in clients %}<button type="button" class="client-card" data-client-card data-client-id="{{ client.id }}" data-search="{{ client.name }} {{ client.employee_number or '' }}"><strong>{{ client.employee_number }}</strong><span>{{ client.name }}</span></button>{% endfor %}</div>
-    <h2>{{ _('lunch.today_plates') }}</h2>
-    <div class="plate-grid">{% for plate in plates %}<div class="plate-card"><strong>{{ plate.name }}</strong><p>{{ plate.description or '' }}</p>{% for variant in plate.variants if variant.active %}<button type="button" class="btn btn-outline-primary touch-button" data-plate-id="{{ plate.id }}" data-variant-id="{{ variant.id }}">{{ variant.label }} — {{ variant.price }} {{ _('currency.default') }}</button>{% endfor %}</div>{% endfor %}</div>
-    <button class="btn btn-primary btn-large" {% if not plates %}disabled{% endif %}>{{ _('lunch.confirm_charge') }}</button>
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="form-row"><label for="client_id">{{ _('field.client') }}</label><select id="client_id" name="client_id" required><option value="">{{ _('client.selector.title') }}</option>{% for client in clients %}<option value="{{ client.id }}">{{ client.employee_number or '—' }} — {{ client.name }} — {{ _('client.balance') }} {{ client.current_balance if client.current_balance is defined else '' }}</option>{% endfor %}</select></div>
+    <div class="form-row"><label for="plate_id">{{ _('lunch.today_plates') }}</label><select id="plate_id" name="plate_id" required {% if closed_today or not plates %}disabled{% endif %}><option value="">{{ _('button.add_plate') }}</option>{% for plate in plates %}<option value="{{ plate.id }}">{{ plate.name }}</option>{% endfor %}</select></div>
+    <div class="form-row"><label for="variant_id">{{ _('field.variant') }}</label><select id="variant_id" name="variant_id" required {% if closed_today or not plates %}disabled{% endif %}><option value="">{{ _('field.variant') }}</option>{% for plate in plates %}{% for variant in plate.variants if variant.active %}<option value="{{ variant.id }}" data-plate="{{ plate.id }}">{{ variant.label }} — {{ variant.price }} {{ _('currency.default') }}</option>{% endfor %}{% endfor %}</select></div>
+    <button class="btn btn-primary btn-large" {% if closed_today or not plates %}disabled{% endif %}>{{ _('lunch.confirm_charge') }}</button>
   </form>
 </section>
 {% endblock %}

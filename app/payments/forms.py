@@ -3,7 +3,7 @@ from flask_wtf import FlaskForm
 from wtforms import DecimalField, SelectField, SubmitField, TextAreaField
 from wtforms.validators import DataRequired, Length, NumberRange, Optional
 class PaymentForm(FlaskForm):
-    client_id=SelectField('Client', coerce=int, validators=[DataRequired()])
-    amount=DecimalField('Amount', validators=[NumberRange(min=0.01)])
-    note=TextAreaField('Note', validators=[Optional(), Length(max=255)])
-    submit=SubmitField('Save Payment')
+    client_id=SelectField('Client', coerce=lambda v: int(v) if str(v).strip() else None, validators=[DataRequired()])
+    amount=DecimalField('Montant', validators=[NumberRange(min=0.01)])
+    note=TextAreaField('Notes', validators=[Optional(), Length(max=255)])
+    submit=SubmitField('Enregistrer')

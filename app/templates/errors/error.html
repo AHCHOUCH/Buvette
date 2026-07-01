@@ -1,9 +1,9 @@
 {% extends 'layouts/base.html' %}
-{% block title %}Error {{ status_code }} — Buvette Manager{% endblock %}
+{% block title %}{{ _('error.server') if status_code == 500 else _('error.not_found') if status_code == 404 else _('error.permission_denied') if status_code == 403 else _('error.required') }} — {{ _('app.name') }}{% endblock %}
 {% block content %}
 <section class="card">
-  <h1 class="card-title">Error {{ status_code }}</h1>
-  <p>{{ error.description if error and error.description else 'The requested action could not be completed.' }}</p>
-  <a class="btn btn-primary" href="{{ url_for('index') }}">Return home</a>
+  <h1 class="card-title">{{ _('error.server') if status_code == 500 else _('error.not_found') if status_code == 404 else _('error.permission_denied') if status_code == 403 else _('error.required') }}</h1>
+  <p>{{ _('error.server') if status_code == 500 else _('error.not_found') if status_code == 404 else _('error.permission_denied') if status_code == 403 else _('error.required') }}</p>
+  <a class="btn btn-primary" href="{{ url_for('index') }}">{{ _('button.back') }}</a>
 </section>
 {% endblock %}
