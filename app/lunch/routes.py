@@ -1,6 +1,15 @@
-"""Route declarations for the lunch feature.
+"""Routes for the lunch feature."""
 
-Routes will be added when the lunch module is implemented. Route handlers must
-remain thin and coordinate HTTP requests, validation, service calls, and
-responses only.
-"""
+from flask import Blueprint, render_template
+from flask_login import login_required
+
+
+lunch_bp = Blueprint("lunch", __name__, url_prefix="/lunch")
+
+
+@lunch_bp.get("/")
+@login_required
+def index():
+    """Display a safe placeholder until the lunch workflow is implemented."""
+
+    return render_template("placeholder.html", module_name="Lunch")

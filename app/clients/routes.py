@@ -1,6 +1,15 @@
-"""Route declarations for the clients feature.
+"""Routes for the clients feature."""
 
-Routes will be added when the clients module is implemented. Route handlers must
-remain thin and coordinate HTTP requests, validation, service calls, and
-responses only.
-"""
+from flask import Blueprint, render_template
+from flask_login import login_required
+
+
+clients_bp = Blueprint("clients", __name__, url_prefix="/clients")
+
+
+@clients_bp.get("/")
+@login_required
+def index():
+    """Display a safe placeholder until the clients workflow is implemented."""
+
+    return render_template("placeholder.html", module_name="Clients")
