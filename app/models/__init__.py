@@ -20,12 +20,23 @@ class User(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False, index=True)
+    password_hash = db.Column(db.String(255), nullable=False, default="")
+    full_name = db.Column(db.String(120), nullable=False, default="")
     display_name = db.Column(db.String(120), nullable=False)
     role = db.Column(db.String(30), nullable=False, default=ROLE_CASHIER)
     is_active = db.Column(db.Boolean, nullable=False, default=True)
+    active = db.synonym("is_active")
     created_at = db.Column(db.DateTime(timezone=True), nullable=False, default=utcnow)
+    updated_at = db.Column(db.DateTime(timezone=True), nullable=False, default=utcnow, onupdate=utcnow)
+    last_login_at = db.Column(db.DateTime(timezone=True), nullable=True)
 
     ledger_entries = db.relationship("LedgerEntry", back_populates="created_by_user")
+
+    @property
+    def is_authenticated(self): return True
+    @property
+    def is_anonymous(self): return False
+    def get_id(self) -> str: return str(self.id)
 
     def __repr__(self) -> str:
         return f"<User {self.username}>"
@@ -48,7 +59,6 @@ class Client(db.Model):
     ledger_entries = db.relationship("LedgerEntry", back_populates="client", order_by="LedgerEntry.timestamp", cascade="all, delete-orphan")
     breakfast_orders = db.relationship("BreakfastOrder", back_populates="client")
     lunch_orders = db.relationship("LunchOrder", back_populates="client")
-    manual_charges = db.relationship("ManualCharge", back_populates="client")
     payments = db.relationship("Payment", back_populates="client")
 
     @property
@@ -178,17 +188,30 @@ class LunchOrder(db.Model):
     __table_args__ = (db.CheckConstraint("amount >= 0", name="ck_lunch_orders_amount_non_negative"),)
 
 
+class Supplier(db.Model):
+    __tablename__ = "suppliers"
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(160), nullable=False, unique=True, index=True)
+    phone = db.Column(db.String(80), nullable=True)
+    notes = db.Column(db.Text, nullable=True)
+    active = db.Column(db.Boolean, nullable=False, default=True, index=True)
+    created_at = db.Column(db.DateTime(timezone=True), nullable=False, default=utcnow)
+    updated_at = db.Column(db.DateTime(timezone=True), nullable=False, default=utcnow, onupdate=utcnow)
+    charges = db.relationship("ManualCharge", back_populates="supplier")
+
+
 class ManualCharge(db.Model):
     __tablename__ = "manual_charges"
 
     id = db.Column(db.Integer, primary_key=True)
-    client_id = db.Column(db.Integer, db.ForeignKey("clients.id"), nullable=False, index=True)
+    supplier_id = db.Column(db.Integer, db.ForeignKey("suppliers.id"), nullable=True, index=True)
+    client_id = db.Column(db.Integer, db.ForeignKey("clients.id"), nullable=True, index=True)
     amount = db.Column(db.Numeric(12, 2), nullable=False)
     category = db.Column(db.String(80), nullable=False, index=True)
     notes = db.Column(db.String(255), nullable=True)
     created_at = db.Column(db.DateTime(timezone=True), nullable=False, default=utcnow, index=True)
 
-    client = db.relationship("Client", back_populates="manual_charges")
+    supplier = db.relationship("Supplier", back_populates="charges")
 
     __table_args__ = (db.CheckConstraint("amount >= 0", name="ck_manual_charges_amount_non_negative"),)
 
@@ -207,6 +230,22 @@ class Payment(db.Model):
     __table_args__ = (db.CheckConstraint("amount >= 0", name="ck_payments_amount_non_negative"),)
 
 
+class AuditLog(db.Model):
+    __tablename__ = "audit_logs"
+    id = db.Column(db.Integer, primary_key=True)
+    timestamp = db.Column(db.DateTime(timezone=True), nullable=False, default=utcnow, index=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=True, index=True)
+    username_snapshot = db.Column(db.String(80), nullable=True, index=True)
+    action = db.Column(db.String(120), nullable=False, index=True)
+    entity_type = db.Column(db.String(80), nullable=True, index=True)
+    entity_id = db.Column(db.Integer, nullable=True, index=True)
+    description = db.Column(db.Text, nullable=False, default="")
+    ip_address = db.Column(db.String(80), nullable=True)
+    user_agent = db.Column(db.String(255), nullable=True)
+    severity = db.Column(db.String(20), nullable=False, default="INFO", index=True)
+    metadata_json = db.Column(db.Text, nullable=True)
+
+
 class Setting(db.Model):
     __tablename__ = "settings"
 
@@ -217,5 +256,5 @@ class Setting(db.Model):
 
 __all__ = [
     "BreakfastOrder", "BreakfastOrderItem", "BreakfastProduct", "Client", "LedgerEntry",
-    "LunchMenu", "LunchOrder", "ManualCharge", "Payment", "Setting", "User",
+    "LunchMenu", "LunchOrder", "ManualCharge", "Payment", "Setting", "Supplier", "AuditLog", "User",
 ]

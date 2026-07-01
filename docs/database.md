@@ -45,3 +45,21 @@ The MVP adds breakfast products and orders, lunch menus and orders, manual charg
 ## Seed data
 
 Startup seeds a default staff client, common breakfast products, weekday lunch menus, and basic settings when the database is empty. SQLite data persists in Docker through the `buvette_instance` volume.
+
+## Production hardening entities
+
+### Database users
+
+Users are now persisted in the `users` table with `username`, `password_hash`, `full_name`, `role`, `is_active`, timestamps, and `last_login_at`. Passwords are stored only as Werkzeug hashes. Startup seeds `administrator / administrator` and `cashier / cashier` when no users exist.
+
+### Suppliers and supplier charges
+
+The `suppliers` table stores buvette vendors and merchants. `manual_charges` now records supplier expenses through `supplier_id`; these rows are operating expenses and do not create client ledger entries or affect client balances.
+
+### Audit logs
+
+The `audit_logs` table records timestamp, user snapshot, action, entity, description, request metadata, severity, and optional JSON metadata for authentication, authorization, financial writes, dangerous actions, and management workflows.
+
+### Migration
+
+`migrations/0003_production_hardening.sql` documents additive schema changes for database users, suppliers, supplier-linked charges, and audit logs. Runtime initialization also performs small additive SQLite compatibility upgrades for existing local MVP databases.

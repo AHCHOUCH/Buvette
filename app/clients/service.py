@@ -16,6 +16,9 @@ class ClientService:
     def balance(self, client): return normalize_money(self.ledger.current_balance(client.id)) if client and client.id else Decimal("0.00")
     def save_client(self, *, name, account_code, debt_limit, notes, is_active=True, client=None):
         name=(name or "").strip(); account_code=(account_code or "").strip() or None
+        if not account_code and not client:
+            max_id = (self.session.query(Client.id).order_by(Client.id.desc()).first() or [0])[0] or 0
+            account_code = f"EMP-{max_id + 1:04d}"
         if not name: raise ValueError("Client name is required.")
         if account_code and self.repo.find_duplicate_identifier(account_code, getattr(client, 'id', None)): raise ValueError("Another active client already uses this employee number.")
         client = client or Client()

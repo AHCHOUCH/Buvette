@@ -2,13 +2,14 @@
 from flask import Blueprint, flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 from app import db
+from app.permissions import permission_required
 from app.clients.service import ClientService
 from app.lunch.forms import LunchMenuForm
 from app.lunch.service import LunchService
 
 lunch_bp=Blueprint('lunch', __name__, url_prefix='/lunch')
 @lunch_bp.route('/', methods=['GET','POST'])
-@login_required
+@permission_required('lunch')
 def index():
     svc=LunchService(db.session); clients=ClientService(db.session).list_clients()
     if 'client_id' in request.form:
@@ -18,7 +19,7 @@ def index():
     today_menu=svc.repo.menu_for_weekday(datetime.date.today().weekday())
     return render_template('lunch/index.html', clients=clients, menu=today_menu)
 @lunch_bp.route('/menus', methods=['GET','POST'])
-@login_required
+@permission_required('lunch')
 def menus():
     svc=LunchService(db.session); form=LunchMenuForm()
     if form.validate_on_submit():

@@ -31,6 +31,7 @@ def create_app(config_class: type[Config] = Config) -> Flask:
     _register_blueprints(app)
     _register_default_routes(app)
     _register_error_handlers(app)
+    _register_template_helpers(app)
     _ensure_database(app)
 
     return app
@@ -67,8 +68,10 @@ def _register_blueprints(app: Flask) -> None:
     from app.lunch.routes import lunch_bp
     from app.payments.routes import payments_bp
     from app.settings.routes import settings_bp
+    from app.users.routes import users_bp
+    from app.logs.routes import logs_bp
 
-    blueprints = (auth_bp, dashboard_bp, clients_bp, breakfast_bp, lunch_bp, charges_bp, payments_bp, ledger_bp, settings_bp)
+    blueprints = (auth_bp, dashboard_bp, clients_bp, breakfast_bp, lunch_bp, charges_bp, payments_bp, ledger_bp, settings_bp, users_bp, logs_bp)
     for blueprint in blueprints:
         app.register_blueprint(blueprint)
 
@@ -98,6 +101,15 @@ def _register_error_handlers(app: Flask) -> None:
         )
 
 
+
+def _register_template_helpers(app: Flask) -> None:
+    from app.i18n import t, lang
+    from app.permissions import has_permission
+    @app.context_processor
+    def helpers():
+        items=[('Dashboard','dashboard.index','dashboard'),('Clients','clients.index','clients'),('Breakfast','breakfast.index','breakfast'),('Lunch','lunch.index','lunch'),('Suppliers','charges.suppliers','suppliers'),('Charges','charges.index','charges'),('Payments','payments.index','payments'),('Ledger','ledger.index','ledger'),('Settings','settings.index','settings'),('Users','users.index','users'),('Logs','logs.index','logs')]
+        return {'_': t, 'ui_lang': lang(), 'ui_dir': 'rtl' if lang() == 'ar' else 'ltr', 'nav_items': [i for i in items if has_permission(i[2])]}
+
 def _ensure_database(app: Flask) -> None:
     """Create the SQLite database automatically when no database file exists."""
 
@@ -111,19 +123,45 @@ def _ensure_database(app: Flask) -> None:
                 db_path = Path(app.instance_path) / db_path
             db_path.parent.mkdir(parents=True, exist_ok=True)
         db.create_all()
+        _ensure_sqlite_columns()
         _seed_data()
 
+
+
+def _ensure_sqlite_columns() -> None:
+    """Apply tiny additive SQLite compatibility upgrades for local MVP databases."""
+    from sqlalchemy import inspect, text
+    inspector = inspect(db.engine)
+    tables = set(inspector.get_table_names())
+    def cols(table): return {c['name'] for c in inspector.get_columns(table)} if table in tables else set()
+    statements=[]
+    user_cols=cols('users')
+    for name, ddl in {"password_hash":"VARCHAR(255) DEFAULT ''","full_name":"VARCHAR(120) DEFAULT ''","updated_at":"DATETIME","last_login_at":"DATETIME"}.items():
+        if 'users' in tables and name not in user_cols: statements.append(f'ALTER TABLE users ADD COLUMN {name} {ddl}')
+    charge_cols=cols('manual_charges')
+    if 'manual_charges' in tables and 'supplier_id' not in charge_cols: statements.append('ALTER TABLE manual_charges ADD COLUMN supplier_id INTEGER')
+    for statement in statements:
+        db.session.execute(text(statement))
+    if statements: db.session.commit()
 
 def _seed_data() -> None:
     """Seed default products, menus, settings, and a sample client for first use."""
 
-    from app.models import BreakfastProduct, Client, LunchMenu, Setting
+    from app.models import BreakfastProduct, Client, LunchMenu, Setting, User, Supplier
+    from werkzeug.security import generate_password_hash
+    from app.utils.constants import ROLE_ADMIN, ROLE_CASHIER
 
+    if not User.query.first():
+        db.session.add(User(username="administrator", full_name="Administrator", display_name="Administrator", role=ROLE_ADMIN, password_hash=generate_password_hash("administrator")))
+        db.session.add(User(username="cashier", full_name="Cashier", display_name="Cashier", role=ROLE_CASHIER, password_hash=generate_password_hash("cashier")))
     if not Client.query.first():
-        db.session.add(Client(name="Walk-in Staff", account_code="STAFF", debt_limit=50, notes="Default staff account"))
+        db.session.add(Client(name="Walk-in Staff", account_code="EMP-0001", debt_limit=50, notes="Default staff account"))
     if not BreakfastProduct.query.first():
         for name, price in (("Coffee", 1.00), ("Tea", 0.80), ("Croissant", 1.50), ("Sandwich", 2.50)):
             db.session.add(BreakfastProduct(name=name, price=price, is_active=True))
+    if not Supplier.query.first():
+        for name in ("Carrefour", "Marjane", "Local bakery", "Vegetable supplier", "Cleaning supplier", "Other"):
+            db.session.add(Supplier(name=name, active=True))
     if not LunchMenu.query.first():
         menus = ((0, "Monday hot meal", 6.00), (1, "Tuesday pasta", 6.00), (2, "Wednesday grill", 6.50), (3, "Thursday special", 6.00), (4, "Friday fish", 7.00))
         for weekday, name, price in menus:

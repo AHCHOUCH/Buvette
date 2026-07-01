@@ -3,12 +3,13 @@ from datetime import datetime
 from flask import Blueprint, render_template, request
 from flask_login import login_required
 from app import db
+from app.permissions import permission_required
 from app.clients.service import ClientService
 from app.ledger.service import LedgerService
 
 ledger_bp=Blueprint('ledger', __name__, url_prefix='/ledger')
 @ledger_bp.get('/')
-@login_required
+@permission_required('ledger')
 def index():
     def parse(name):
         value=request.args.get(name); return datetime.strptime(value, '%Y-%m-%d').date() if value else None

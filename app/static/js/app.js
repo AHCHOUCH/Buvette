@@ -55,8 +55,16 @@
     if (!amount) { return; }
     document.querySelectorAll('.numeric-keypad button').forEach(function (button) {
       button.addEventListener('click', function () {
+        var key = button.textContent.trim();
+        var value = amount.value || '';
         if (button.hasAttribute('data-clear-amount')) { amount.value = ''; return; }
-        amount.value = (amount.value || '') + button.textContent.trim();
+        if (button.hasAttribute('data-backspace-amount')) { amount.value = value.slice(0, -1); return; }
+        if (key === '.') {
+          if (value.indexOf('.') !== -1) { return; }
+          amount.value = value ? value + '.' : '0.';
+          return;
+        }
+        if (/^[0-9]$/.test(key)) { amount.value = value + key; }
       });
     });
   }

@@ -40,3 +40,13 @@ sqlite3 instance/buvette-manager.sqlite3 < migrations/0002_mvp.sql
 ```bash
 python -m unittest discover -s tests -v
 ```
+
+## Production hardening highlights
+
+- Default seeded users: `administrator / administrator` and `cashier / cashier`.
+- Users are stored in the database with hashed passwords and role-based access control.
+- Administrators use a French LTR interface; cashiers use an Arabic RTL operational shell.
+- Supplier charges are managed as buvette expenses and do not affect client balances.
+- Audit logs are available to administrators at `/logs/`.
+- Client employee numbers are generated automatically when omitted.
+- Numeric keypads support safe decimal entry (`.` -> `0.`, duplicate decimals ignored, backspace, clear).

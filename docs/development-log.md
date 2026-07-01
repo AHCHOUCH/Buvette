@@ -38,3 +38,13 @@
 - Implemented touchscreen breakfast ordering, product management, lunch charging, menu administration, manual charges, cash payments, ledger filtering, dashboard metrics, and settings editing.
 - Added additive SQL migration `0002_mvp.sql` and startup seed data for immediate use after deployment.
 - Added automated unittest coverage for authentication, clients, breakfast, lunch, charges, payments, ledger, dashboard, and settings.
+
+## 2026-07-01 production hardening
+
+- Replaced fixed in-memory demo authentication with database-backed users, password hashes, last-login tracking, and administrator/cashier roles.
+- Added backend permission helpers, explicit protected route decorators, localized French administrator navigation, Arabic RTL cashier shell behavior, and a clean 403 path.
+- Added suppliers, supplier expenses, supplier archive/delete-with-password flows, and separated supplier charges from client ledger balances.
+- Added audit logs for authentication, authorization failures, user management, suppliers, dangerous actions, and supplier charge creation with an administrator log viewer.
+- Added automatic client employee number generation using `EMP-0001` style identifiers when the administrator leaves the field blank.
+- Fixed numeric keypad decimal behavior: first decimal becomes `0.`, duplicate decimals are ignored, digits append, backspace removes one character, and clear empties the field.
+- Updated tests for database users, permissions, localization direction, audit logs, employee number generation, supplier expenses, and ledger separation.
