@@ -1,6 +1,6 @@
-{% macro search_box(name='q', value='', placeholder='Search') -%}
+{% macro search_box(name='q', value='', prompt='Search') -%}
 <label class="search-box">
-  <span class="sr-only">{{ placeholder }}</span>
-  <input type="search" name="{{ name }}" value="{{ value }}" placeholder="{{ placeholder }}" data-search-debounce>
+  <span class="sr-only">{{ prompt }}</span>
+  <input type="search" name="{{ name }}" value="{{ value }}" aria-label="{{ prompt }}" data-search-debounce>
 </label>
 {%- endmacro %}

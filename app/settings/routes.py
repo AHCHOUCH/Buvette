@@ -1,6 +1,21 @@
-"""Route declarations for the settings feature.
+"""Routes for application settings."""
+from flask import Blueprint, flash, render_template
+from flask_login import login_required
+from app import db
+from app.auth.service import set_password
+from app.settings.forms import GeneralSettingsForm
+from app.settings.service import SettingsService
 
-Routes will be added when the settings module is implemented. Route handlers must
-remain thin and coordinate HTTP requests, validation, service calls, and
-responses only.
-"""
+settings_bp=Blueprint('settings', __name__, url_prefix='/settings')
+@settings_bp.route('/', methods=['GET','POST'])
+@login_required
+def index():
+    svc=SettingsService(db.session); values=svc.all(); values['debt_warning_default']=float(values.get('debt_warning_default') or 0); form=GeneralSettingsForm(data=values)
+    if form.validate_on_submit():
+        try:
+            svc.save_general(form.organization_name.data, form.debt_warning_default.data, form.currency.data)
+            if form.administrator_password.data: set_password('administrator', form.administrator_password.data)
+            if form.cashier_password.data: set_password('cashier', form.cashier_password.data)
+            db.session.commit(); flash('Settings saved.','success')
+        except ValueError as exc: db.session.rollback(); flash(str(exc),'danger')
+    return render_template('settings/index.html', form=form)

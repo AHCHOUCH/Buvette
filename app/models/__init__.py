@@ -2,11 +2,15 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from decimal import Decimal
 
 from app import db
 from app.utils.constants import LEDGER_CREDIT, LEDGER_DEBIT, ROLE_CASHIER
+
+
+def utcnow() -> datetime:
+    return datetime.now(timezone.utc)
 
 
 class User(db.Model):
@@ -19,7 +23,7 @@ class User(db.Model):
     display_name = db.Column(db.String(120), nullable=False)
     role = db.Column(db.String(30), nullable=False, default=ROLE_CASHIER)
     is_active = db.Column(db.Boolean, nullable=False, default=True)
-    created_at = db.Column(db.DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc))
+    created_at = db.Column(db.DateTime(timezone=True), nullable=False, default=utcnow)
 
     ledger_entries = db.relationship("LedgerEntry", back_populates="created_by_user")
 
@@ -38,26 +42,29 @@ class Client(db.Model):
     debt_limit = db.Column(db.Numeric(12, 2), nullable=False, default=Decimal("0.00"))
     is_active = db.Column(db.Boolean, nullable=False, default=True, index=True)
     notes = db.Column(db.Text, nullable=True)
-    created_at = db.Column(db.DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc))
-    updated_at = db.Column(
-        db.DateTime(timezone=True),
-        nullable=False,
-        default=lambda: datetime.now(timezone.utc),
-        onupdate=lambda: datetime.now(timezone.utc),
-    )
+    created_at = db.Column(db.DateTime(timezone=True), nullable=False, default=utcnow)
+    updated_at = db.Column(db.DateTime(timezone=True), nullable=False, default=utcnow, onupdate=utcnow)
 
-    ledger_entries = db.relationship(
-        "LedgerEntry",
-        back_populates="client",
-        order_by="LedgerEntry.timestamp"
-    )
+    ledger_entries = db.relationship("LedgerEntry", back_populates="client", order_by="LedgerEntry.timestamp", cascade="all, delete-orphan")
+    breakfast_orders = db.relationship("BreakfastOrder", back_populates="client")
+    lunch_orders = db.relationship("LunchOrder", back_populates="client")
+    manual_charges = db.relationship("ManualCharge", back_populates="client")
+    payments = db.relationship("Payment", back_populates="client")
+
+    @property
+    def employee_number(self) -> str | None:
+        return self.account_code
+
+    @employee_number.setter
+    def employee_number(self, value: str | None) -> None:
+        self.account_code = value
 
     def __repr__(self) -> str:
         return f"<Client {self.name}>"
 
 
 class LedgerEntry(db.Model):
-    """Normalized financial ledger row for future posting workflows."""
+    """Normalized financial ledger row for all posted transactions."""
 
     __tablename__ = "ledger_entries"
 
@@ -69,7 +76,7 @@ class LedgerEntry(db.Model):
     reference_type = db.Column(db.String(50), nullable=True, index=True)
     reference_id = db.Column(db.Integer, nullable=True, index=True)
     description = db.Column(db.String(255), nullable=True)
-    timestamp = db.Column(db.DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc), index=True)
+    timestamp = db.Column(db.DateTime(timezone=True), nullable=False, default=utcnow, index=True)
     created_by_user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=True)
 
     client = db.relationship("Client", back_populates="ledger_entries")
@@ -78,19 +85,137 @@ class LedgerEntry(db.Model):
     __table_args__ = (
         db.CheckConstraint("entry_type in ('debit', 'credit')", name="ck_ledger_entries_entry_type"),
         db.CheckConstraint("amount >= 0", name="ck_ledger_entries_amount_non_negative"),
+        db.Index("ix_ledger_client_timestamp", "client_id", "timestamp"),
     )
 
     def signed_amount(self) -> Decimal:
-        """Return debit as positive and credit as negative for balance math."""
-
         if self.entry_type == LEDGER_CREDIT:
             return -self.amount
         if self.entry_type == LEDGER_DEBIT:
             return self.amount
         raise ValueError(f"Unsupported ledger entry type: {self.entry_type}")
 
-    def __repr__(self) -> str:
-        return f"<LedgerEntry client={self.client_id} type={self.entry_type} amount={self.amount}>"
+
+class BreakfastProduct(db.Model):
+    __tablename__ = "breakfast_products"
+
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(120), nullable=False, unique=True, index=True)
+    price = db.Column(db.Numeric(12, 2), nullable=False)
+    is_active = db.Column(db.Boolean, nullable=False, default=True, index=True)
+    created_at = db.Column(db.DateTime(timezone=True), nullable=False, default=utcnow)
+    updated_at = db.Column(db.DateTime(timezone=True), nullable=False, default=utcnow, onupdate=utcnow)
+
+    __table_args__ = (db.CheckConstraint("price >= 0", name="ck_breakfast_products_price_non_negative"),)
 
 
-__all__ = ["Client", "LedgerEntry", "User"]
+class BreakfastOrder(db.Model):
+    __tablename__ = "breakfast_orders"
+
+    id = db.Column(db.Integer, primary_key=True)
+    client_id = db.Column(db.Integer, db.ForeignKey("clients.id"), nullable=False, index=True)
+    total_amount = db.Column(db.Numeric(12, 2), nullable=False)
+    notes = db.Column(db.String(255), nullable=True)
+    created_at = db.Column(db.DateTime(timezone=True), nullable=False, default=utcnow, index=True)
+
+    client = db.relationship("Client", back_populates="breakfast_orders")
+    items = db.relationship("BreakfastOrderItem", back_populates="order", cascade="all, delete-orphan")
+
+    __table_args__ = (db.CheckConstraint("total_amount >= 0", name="ck_breakfast_orders_total_non_negative"),)
+
+
+class BreakfastOrderItem(db.Model):
+    __tablename__ = "breakfast_order_items"
+
+    id = db.Column(db.Integer, primary_key=True)
+    order_id = db.Column(db.Integer, db.ForeignKey("breakfast_orders.id", ondelete="CASCADE"), nullable=False, index=True)
+    product_id = db.Column(db.Integer, db.ForeignKey("breakfast_products.id"), nullable=False)
+    product_name = db.Column(db.String(120), nullable=False)
+    unit_price = db.Column(db.Numeric(12, 2), nullable=False)
+    quantity = db.Column(db.Integer, nullable=False)
+    line_total = db.Column(db.Numeric(12, 2), nullable=False)
+
+    order = db.relationship("BreakfastOrder", back_populates="items")
+    product = db.relationship("BreakfastProduct")
+
+    __table_args__ = (
+        db.CheckConstraint("unit_price >= 0", name="ck_breakfast_items_price_non_negative"),
+        db.CheckConstraint("quantity > 0", name="ck_breakfast_items_quantity_positive"),
+        db.CheckConstraint("line_total >= 0", name="ck_breakfast_items_total_non_negative"),
+    )
+
+
+class LunchMenu(db.Model):
+    __tablename__ = "lunch_menus"
+
+    id = db.Column(db.Integer, primary_key=True)
+    weekday = db.Column(db.Integer, nullable=False, unique=True, index=True)
+    name = db.Column(db.String(160), nullable=False)
+    price = db.Column(db.Numeric(12, 2), nullable=False)
+    is_active = db.Column(db.Boolean, nullable=False, default=True)
+    updated_at = db.Column(db.DateTime(timezone=True), nullable=False, default=utcnow, onupdate=utcnow)
+
+    __table_args__ = (
+        db.CheckConstraint("weekday between 0 and 6", name="ck_lunch_menus_weekday"),
+        db.CheckConstraint("price >= 0", name="ck_lunch_menus_price_non_negative"),
+    )
+
+
+class LunchOrder(db.Model):
+    __tablename__ = "lunch_orders"
+
+    id = db.Column(db.Integer, primary_key=True)
+    client_id = db.Column(db.Integer, db.ForeignKey("clients.id"), nullable=False, index=True)
+    menu_id = db.Column(db.Integer, db.ForeignKey("lunch_menus.id"), nullable=False)
+    service_date = db.Column(db.Date, nullable=False, default=date.today, index=True)
+    menu_name = db.Column(db.String(160), nullable=False)
+    amount = db.Column(db.Numeric(12, 2), nullable=False)
+    created_at = db.Column(db.DateTime(timezone=True), nullable=False, default=utcnow, index=True)
+
+    client = db.relationship("Client", back_populates="lunch_orders")
+    menu = db.relationship("LunchMenu")
+
+    __table_args__ = (db.CheckConstraint("amount >= 0", name="ck_lunch_orders_amount_non_negative"),)
+
+
+class ManualCharge(db.Model):
+    __tablename__ = "manual_charges"
+
+    id = db.Column(db.Integer, primary_key=True)
+    client_id = db.Column(db.Integer, db.ForeignKey("clients.id"), nullable=False, index=True)
+    amount = db.Column(db.Numeric(12, 2), nullable=False)
+    category = db.Column(db.String(80), nullable=False, index=True)
+    notes = db.Column(db.String(255), nullable=True)
+    created_at = db.Column(db.DateTime(timezone=True), nullable=False, default=utcnow, index=True)
+
+    client = db.relationship("Client", back_populates="manual_charges")
+
+    __table_args__ = (db.CheckConstraint("amount >= 0", name="ck_manual_charges_amount_non_negative"),)
+
+
+class Payment(db.Model):
+    __tablename__ = "payments"
+
+    id = db.Column(db.Integer, primary_key=True)
+    client_id = db.Column(db.Integer, db.ForeignKey("clients.id"), nullable=False, index=True)
+    amount = db.Column(db.Numeric(12, 2), nullable=False)
+    note = db.Column(db.String(255), nullable=True)
+    created_at = db.Column(db.DateTime(timezone=True), nullable=False, default=utcnow, index=True)
+
+    client = db.relationship("Client", back_populates="payments")
+
+    __table_args__ = (db.CheckConstraint("amount >= 0", name="ck_payments_amount_non_negative"),)
+
+
+class Setting(db.Model):
+    __tablename__ = "settings"
+
+    key = db.Column(db.String(80), primary_key=True)
+    value = db.Column(db.String(255), nullable=False)
+    updated_at = db.Column(db.DateTime(timezone=True), nullable=False, default=utcnow, onupdate=utcnow)
+
+
+__all__ = [
+    "BreakfastOrder", "BreakfastOrderItem", "BreakfastProduct", "Client", "LedgerEntry",
+    "LunchMenu", "LunchOrder", "ManualCharge", "Payment", "Setting", "User",
+]

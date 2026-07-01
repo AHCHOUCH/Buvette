@@ -6,19 +6,19 @@ Buvette Manager uses a feature-module architecture. Each feature owns its routes
 
 ### Application factory
 
-`app.create_app` initializes Flask and shared extensions. Blueprints are still not registered because no complete business workflow has been approved yet.
+`app.create_app` initializes Flask and shared extensions: SQLAlchemy, Flask-Login, Flask-Migrate, and CSRF protection. It registers all feature blueprints during startup, installs default `/` and `/health` routes, configures error handlers, and creates missing SQLite database tables for the foundation schema.
 
 ### Routes
 
-Routes live in `app/<feature>/routes.py`. They should remain thin and only handle HTTP concerns: reading request data, invoking services, selecting templates, redirecting, and returning responses. Route files remain placeholders until the associated workflow is approved.
+Routes live in `app/<feature>/routes.py`. They should remain thin and only handle HTTP concerns: reading request data, invoking services, selecting templates, redirecting, and returning responses. Implemented business modules expose authenticated pages backed by repositories and services; routes remain responsible for HTTP coordination only.
 
 ### Services
 
-Services hold business logic. Feature-specific services live in `app/<feature>/service.py`; cross-feature services live in `app/services`. Current foundation services are:
+Services hold business logic. Feature-specific services live in `app/<feature>/service.py`; cross-feature services live in `app/services`. Current services are:
 
 - `ClientService`: client lookup, balance calculation, non-blocking debt warnings, activation, and deactivation.
-- `LedgerService`: ledger-entry preparation, balance calculation, and a future posting interface.
-- `DashboardService`: placeholder methods for today's charges, today's payments, and outstanding balances.
+- `LedgerService`: ledger-entry preparation, posting, balance calculation, recent activity, and filtered ledger listing.
+- `DashboardService`: daily counts, revenue, outstanding debt, over-limit clients, recent payments, and recent charges.
 
 ### Forms
 
@@ -39,5 +39,22 @@ Routes may depend on forms and services. Services may depend on models and utili
 ## Foundation decisions
 
 - Debt-limit checks return warnings and never block transactions.
-- Ledger posting is deliberately unimplemented until the first financial workflow is approved.
+- Ledger posting is deliberately unimplemented only through transaction services.
 - The global UI is optimized for Windows 7 touchscreen use: large controls, high contrast, simple navigation, and no required hover interactions.
+
+
+## Startup and Docker
+
+`python run.py` starts the development server on `0.0.0.0:5000` with debug reload enabled by default. The startup banner prints the application name, environment, database URI, listening address, and loaded blueprints. Docker uses the same entrypoint and the `/health` endpoint for container health checks.
+
+## Authentication
+
+Flask-Login protects dashboard and module routes. Administrator and cashier credentials can be changed from Settings for the running deployment.
+
+## Repositories
+
+Database access for MVP workflows is centralized in `app/repositories/core.py`. Feature services use repositories for queries and persistence while routes stay thin and focused on request/response coordination.
+
+## MVP modules
+
+Clients, breakfast, lunch, manual charges, payments, ledger, dashboard, and settings now have working authenticated pages. Transaction services post ledger entries immediately after their source record is flushed so balances, filtering, and dashboard metrics stay consistent.

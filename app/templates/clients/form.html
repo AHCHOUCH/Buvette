@@ -1,0 +1,3 @@
+{% extends 'layouts/base.html' %}{% block title %}{{ title }} — Buvette Manager{% endblock %}{% block content %}
+<section class="card"><h1>{{ title }}</h1><form method="post">{{ form.hidden_tag() }}<div class="form-row">{{ form.account_code.label }}{{ form.account_code() }}</div><div class="form-row">{{ form.name.label }}{{ form.name(data_autofocus=true) }}</div><div class="form-row">{{ form.debt_limit.label }}{{ form.debt_limit() }}</div><div class="form-row touch-check">{{ form.is_active() }} {{ form.is_active.label }}</div><div class="form-row">{{ form.notes.label }}{{ form.notes() }}</div>{{ form.submit(class='btn btn-primary btn-large') }} <a class="btn btn-secondary" href="{{ url_for('clients.index') }}">Cancel</a></form></section>
+{% endblock %}

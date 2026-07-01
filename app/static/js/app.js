@@ -38,9 +38,34 @@
     return window.confirm(message || 'Are you sure?');
   }
 
+
+  function bindQuantityButtons() {
+    document.querySelectorAll('[data-step]').forEach(function (button) {
+      button.addEventListener('click', function () {
+        var target = document.getElementById(button.getAttribute('data-target'));
+        var step = parseInt(button.getAttribute('data-step'), 10);
+        var value = Math.max(0, (parseInt(target.value || '0', 10) || 0) + step);
+        target.value = value;
+      });
+    });
+  }
+
+  function bindNumericKeypad() {
+    var amount = document.querySelector('.keypad-field input');
+    if (!amount) { return; }
+    document.querySelectorAll('.numeric-keypad button').forEach(function (button) {
+      button.addEventListener('click', function () {
+        if (button.hasAttribute('data-clear-amount')) { amount.value = ''; return; }
+        amount.value = (amount.value || '') + button.textContent.trim();
+      });
+    });
+  }
+
   window.Buvette = { debounce: debounce, notify: notify, confirmAction: confirmAction };
   document.addEventListener('DOMContentLoaded', function () {
     autoFocus();
     bindSearchDebounce();
+    bindQuantityButtons();
+    bindNumericKeypad();
   });
 }());
