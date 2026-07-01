@@ -66,3 +66,9 @@ Clients, breakfast, lunch, manual charges, payments, ledger, dashboard, and sett
 - Localization is intentionally lightweight in `app.i18n`, selecting French LTR for administrators and Arabic RTL for cashiers.
 - Supplier expenses use the charges module but are modeled independently from client ledger entries.
 - Audit logging is centralized in `app.audit.log_audit` and stored in `AuditLog` for administrator review.
+
+## Localization and authorization refinement
+
+Localization now uses the `app/i18n` package with key-based translations and role-aware language selection. Administrator pages default to French/LTR and cashier pages default to Arabic/RTL. Templates receive `_`, `weekday_key`, `ui_lang`, and `ui_dir` from the application context.
+
+Authorization uses named permissions such as `lunch.manage`, `payments.create`, and `dangerous.delete`. Legacy route aliases are normalized for backward compatibility, but server-side decorators remain the security boundary.

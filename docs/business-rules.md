@@ -51,3 +51,11 @@ When a feature changes business behavior, this document must be updated in the s
 - Archive is the normal safe removal operation. Dangerous delete requires an administrator password, writes an audit log, and is blocked for records with financial history.
 - Employee numbers are generated automatically when blank, using a simple `EMP-0001` style sequence; administrators may still override with a unique value.
 - Amount keypads keep valid decimal input: blank plus `.` becomes `0.`, a second `.` is ignored, backspace deletes one character, and clear empties the field.
+
+## Weekly lunch menus
+
+Lunch menus are now organized by week. A `WeeklyMenu` owns seven `DailyMenu` rows, each day can contain multiple `FoodPlate` rows, and each plate has active/inactive `FoodPlateVariant` price options. Default variants are small (`Petit / صغير`, 20 DH) and big (`Grand / كبير`, 25 DH). Cashiers must select a client, plate, and variant before charging lunch. If no active menu exists for today, the UI shows a translated warning and no silent charge is created.
+
+## Dashboard metrics
+
+Dashboard average activity metrics use the last 30 days as the default period: breakfast orders per day, lunch orders per day, client payments per day, and supplier expenses per day.

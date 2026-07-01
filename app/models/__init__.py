@@ -155,6 +155,52 @@ class BreakfastOrderItem(db.Model):
     )
 
 
+class WeeklyMenu(db.Model):
+    __tablename__ = "weekly_menus"
+    id = db.Column(db.Integer, primary_key=True)
+    week_start_date = db.Column(db.Date, nullable=False, unique=True, index=True)
+    label = db.Column(db.String(160), nullable=False, default="")
+    active = db.Column(db.Boolean, nullable=False, default=True, index=True)
+    created_at = db.Column(db.DateTime(timezone=True), nullable=False, default=utcnow)
+    updated_at = db.Column(db.DateTime(timezone=True), nullable=False, default=utcnow, onupdate=utcnow)
+    days = db.relationship("DailyMenu", back_populates="weekly_menu", cascade="all, delete-orphan")
+
+
+class DailyMenu(db.Model):
+    __tablename__ = "daily_menus"
+    id = db.Column(db.Integer, primary_key=True)
+    weekly_menu_id = db.Column(db.Integer, db.ForeignKey("weekly_menus.id"), nullable=False, index=True)
+    service_date = db.Column(db.Date, nullable=False, index=True)
+    weekday = db.Column(db.Integer, nullable=False, index=True)
+    active = db.Column(db.Boolean, nullable=False, default=True, index=True)
+    weekly_menu = db.relationship("WeeklyMenu", back_populates="days")
+    plates = db.relationship("FoodPlate", back_populates="daily_menu", cascade="all, delete-orphan")
+    __table_args__ = (db.UniqueConstraint("weekly_menu_id", "service_date", name="uq_daily_menu_week_date"),)
+
+
+class FoodPlate(db.Model):
+    __tablename__ = "food_plates"
+    id = db.Column(db.Integer, primary_key=True)
+    daily_menu_id = db.Column(db.Integer, db.ForeignKey("daily_menus.id"), nullable=False, index=True)
+    name = db.Column(db.String(160), nullable=False)
+    description = db.Column(db.Text, nullable=True)
+    active = db.Column(db.Boolean, nullable=False, default=True, index=True)
+    daily_menu = db.relationship("DailyMenu", back_populates="plates")
+    variants = db.relationship("FoodPlateVariant", back_populates="food_plate", cascade="all, delete-orphan")
+
+
+class FoodPlateVariant(db.Model):
+    __tablename__ = "food_plate_variants"
+    id = db.Column(db.Integer, primary_key=True)
+    food_plate_id = db.Column(db.Integer, db.ForeignKey("food_plates.id"), nullable=False, index=True)
+    size_key = db.Column(db.String(30), nullable=False)
+    label = db.Column(db.String(80), nullable=False)
+    price = db.Column(db.Numeric(12, 2), nullable=False)
+    active = db.Column(db.Boolean, nullable=False, default=True, index=True)
+    food_plate = db.relationship("FoodPlate", back_populates="variants")
+    __table_args__ = (db.CheckConstraint("price >= 0", name="ck_food_plate_variants_price_non_negative"),)
+
+
 class LunchMenu(db.Model):
     __tablename__ = "lunch_menus"
 
@@ -176,14 +222,21 @@ class LunchOrder(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     client_id = db.Column(db.Integer, db.ForeignKey("clients.id"), nullable=False, index=True)
-    menu_id = db.Column(db.Integer, db.ForeignKey("lunch_menus.id"), nullable=False)
+    menu_id = db.Column(db.Integer, db.ForeignKey("lunch_menus.id"), nullable=True)
+    food_plate_id = db.Column(db.Integer, db.ForeignKey("food_plates.id"), nullable=True, index=True)
+    variant_id = db.Column(db.Integer, db.ForeignKey("food_plate_variants.id"), nullable=True, index=True)
     service_date = db.Column(db.Date, nullable=False, default=date.today, index=True)
-    menu_name = db.Column(db.String(160), nullable=False)
+    menu_name = db.Column(db.String(160), nullable=False, default="")
+    plate_name_snapshot = db.Column(db.String(160), nullable=False, default="")
+    variant_label_snapshot = db.Column(db.String(80), nullable=False, default="")
+    created_by_user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=True)
     amount = db.Column(db.Numeric(12, 2), nullable=False)
     created_at = db.Column(db.DateTime(timezone=True), nullable=False, default=utcnow, index=True)
 
     client = db.relationship("Client", back_populates="lunch_orders")
     menu = db.relationship("LunchMenu")
+    food_plate = db.relationship("FoodPlate")
+    variant = db.relationship("FoodPlateVariant")
 
     __table_args__ = (db.CheckConstraint("amount >= 0", name="ck_lunch_orders_amount_non_negative"),)
 
@@ -256,5 +309,5 @@ class Setting(db.Model):
 
 __all__ = [
     "BreakfastOrder", "BreakfastOrderItem", "BreakfastProduct", "Client", "LedgerEntry",
-    "LunchMenu", "LunchOrder", "ManualCharge", "Payment", "Setting", "Supplier", "AuditLog", "User",
+    "LunchMenu", "WeeklyMenu", "DailyMenu", "FoodPlate", "FoodPlateVariant", "LunchOrder", "ManualCharge", "Payment", "Setting", "Supplier", "AuditLog", "User",
 ]

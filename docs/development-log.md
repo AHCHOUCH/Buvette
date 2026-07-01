@@ -48,3 +48,11 @@
 - Added automatic client employee number generation using `EMP-0001` style identifiers when the administrator leaves the field blank.
 - Fixed numeric keypad decimal behavior: first decimal becomes `0.`, duplicate decimals are ignored, digits append, backspace removes one character, and clear empties the field.
 - Updated tests for database users, permissions, localization direction, audit logs, employee number generation, supplier expenses, and ledger separation.
+
+## 2026-07-01 production refinement continuation
+
+- Added key-based i18n package with French administrator and Arabic cashier translations for navigation, buttons, weekdays, dashboard, lunch, client selection, errors, and common fields.
+- Added weekly lunch menu models with daily menus, food plates, variants, default small/big prices, and lunch order snapshots.
+- Reworked lunch routes and templates to support week creation, plate creation, copy-previous-week workflow, and touch-friendly plate/variant charging.
+- Grouped navigation by role and permission, changed default currency to DH, improved dashboard metrics, and extended numeric keypad/client selector JavaScript.
+- Added migration `0004_weekly_menu_i18n_permissions.sql` and documented ledger separation and 30-day dashboard averages.
