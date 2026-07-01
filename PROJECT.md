@@ -60,3 +60,7 @@ For future changes:
 ## Production hardening update
 
 The application now includes database-backed users, role permissions, French/Arabic role-aware UI shell behavior, supplier expenses, audit logs, automatic employee numbers, guarded archive/delete patterns, and corrected numeric keypad decimal input. Supplier charges are expenses and are intentionally excluded from client balances and client ledger entries.
+
+## Final MVP closure pass
+
+The branch now prioritizes reliable pilot operation: dropdown selectors replace fragile hidden client cards, weekly lunch orders no longer depend on legacy `menu_id`, Saturday/Sunday are closed by default, weekly plate/variant editing is available, historical lunch snapshots are preserved, the UI theme is lighter, and closure migration/deployment notes are documented.

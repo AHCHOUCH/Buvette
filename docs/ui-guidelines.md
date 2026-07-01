@@ -41,3 +41,9 @@ Global JavaScript lives in `app/static/js/app.js`. It provides reusable utilitie
 ## Touch client selector
 
 Cashier lunch workflows use large searchable client cards instead of small dropdowns. Client cards support name and employee-number filtering, single-tap selection, and visible selected state. Shared numeric keypad logic supports all amount inputs: empty plus decimal becomes `0.`, duplicate decimals are ignored, digits append, backspace removes one character, and clear empties the field.
+
+## MVP closure UI
+
+- Main backgrounds use a light neutral surface (`#f6f7f9`) with white cards and a moderate teal header/sidebar accent.
+- Cashier selectors use reliable dropdowns for pilot operation. A richer searchable selector is deferred until after workflow stability is proven.
+- Lunch cashier screens show only client, today's plate, variant, and confirmation. Weekly editing stays on the menu admin screen.

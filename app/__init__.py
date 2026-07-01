@@ -90,14 +90,23 @@ def _register_default_routes(app: Flask) -> None:
 
 def _register_error_handlers(app: Flask) -> None:
     from flask import render_template
+    from app import db
+    from app.audit import log_audit
+
+    def handle_error(error, status_code):
+        db.session.rollback()
+        if status_code == 500:
+            try:
+                log_audit('error.500', 'Error', None, str(error), severity='ERROR')
+                db.session.commit()
+            except Exception:
+                db.session.rollback()
+        return render_template("errors/error.html", status_code=status_code, error=error), status_code
 
     for code in (400, 403, 404, 500):
         app.register_error_handler(
             code,
-            lambda error, status_code=code: (
-                render_template("errors/error.html", status_code=status_code, error=error),
-                status_code,
-            ),
+            lambda error, status_code=code: handle_error(error, status_code),
         )
 
 

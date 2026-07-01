@@ -71,3 +71,15 @@ The `audit_logs` table records timestamp, user snapshot, action, entity, descrip
 Supplier expenses remain in `manual_charges` with `supplier_id`; they are queried as operating expenses and are not posted into `ledger_entries`. The client ledger is reserved for breakfast debits, lunch debits, and payment credits.
 
 Default currency is `DH`; the migration updates the prior development `€` setting when present.
+
+## MVP closure migration
+
+`migrations/0005_mvp_closure.sql` rebuilds `lunch_orders` for SQLite so `menu_id` is nullable. The weekly menu model now treats `food_plate_id`, `variant_id`, `plate_name_snapshot`, `variant_label_snapshot`, and `amount` as the authoritative lunch order record. Apply migrations in order for existing MVP databases:
+
+```bash
+sqlite3 instance/buvette-manager.sqlite3 < migrations/0001_domain_foundation.sql
+sqlite3 instance/buvette-manager.sqlite3 < migrations/0002_mvp.sql
+sqlite3 instance/buvette-manager.sqlite3 < migrations/0003_production_hardening.sql
+sqlite3 instance/buvette-manager.sqlite3 < migrations/0004_weekly_menu_i18n_permissions.sql
+sqlite3 instance/buvette-manager.sqlite3 < migrations/0005_mvp_closure.sql
+```

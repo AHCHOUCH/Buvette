@@ -5,6 +5,7 @@ from app.repositories.core import LunchRepository
 from app.ledger.service import LedgerService
 from app.utils.constants import LEDGER_DEBIT, REFERENCE_LUNCH
 from app.utils.formatting import normalize_money
+from app.utils.parsing import parse_required_int
 
 DEFAULT_VARIANTS = (('small', 'Petit / صغير', '20.00'), ('big', 'Grand / كبير', '25.00'))
 
@@ -33,7 +34,7 @@ class LunchService:
         for offset in range(7):
             service_date = week_start_date + timedelta(days=offset)
             if not self.session.query(DailyMenu).filter_by(weekly_menu_id=week.id, service_date=service_date).first():
-                self.session.add(DailyMenu(weekly_menu_id=week.id, service_date=service_date, weekday=offset, active=True))
+                self.session.add(DailyMenu(weekly_menu_id=week.id, service_date=service_date, weekday=offset, active=offset < 5))
         return week
     def add_plate(self, daily_menu_id, name, description='', variants=None):
         if not (name or '').strip(): raise ValueError('error.required')
@@ -55,7 +56,7 @@ class LunchService:
                     self.session.add(FoodPlateVariant(food_plate_id=new_plate.id, size_key=variant.size_key, label=variant.label, price=variant.price, active=variant.active))
         return target
     def save_menu(self, weekday, name, price, is_active=True):
-        weekday=int(weekday); name=(name or '').strip()
+        weekday=parse_required_int(weekday); name=(name or '').strip()
         if weekday < 0 or weekday > 6: raise ValueError('Invalid weekday.')
         if not name: raise ValueError('Menu name is required.')
         menu=self.repo.menu_for_weekday(weekday) or LunchMenu(weekday=weekday)
@@ -64,8 +65,9 @@ class LunchService:
         self.repo.save_menu(menu); return menu
     def charge_today(self, client_id, plate_id=None, variant_id=None, service_date=None, user_id=None):
         service_date=service_date or date.today()
-        if plate_id and variant_id:
-            plate=self.session.get(FoodPlate, int(plate_id)); variant=self.session.get(FoodPlateVariant, int(variant_id))
+        if plate_id is not None or variant_id is not None:
+            plate_id=parse_required_int(plate_id); variant_id=parse_required_int(variant_id)
+            plate=self.session.get(FoodPlate, plate_id); variant=self.session.get(FoodPlateVariant, variant_id)
             if not plate or not plate.active or not variant or not variant.active or variant.food_plate_id != plate.id: raise ValueError('error.required')
             order=LunchOrder(client_id=client_id, food_plate_id=plate.id, variant_id=variant.id, service_date=service_date, menu_name=plate.name, plate_name_snapshot=plate.name, variant_label_snapshot=variant.label, amount=variant.price, created_by_user_id=user_id)
         else:
