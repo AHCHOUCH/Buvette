@@ -63,3 +63,11 @@ The `audit_logs` table records timestamp, user snapshot, action, entity, descrip
 ### Migration
 
 `migrations/0003_production_hardening.sql` documents additive schema changes for database users, suppliers, supplier-linked charges, and audit logs. Runtime initialization also performs small additive SQLite compatibility upgrades for existing local MVP databases.
+
+## Weekly menu refinement
+
+`migrations/0004_weekly_menu_i18n_permissions.sql` adds week-based lunch planning tables: `weekly_menus`, `daily_menus`, `food_plates`, and `food_plate_variants`. `lunch_orders` now has optional `food_plate_id`, `variant_id`, `plate_name_snapshot`, `variant_label_snapshot`, and `created_by_user_id` columns. The snapshot columns keep historical lunch orders stable after menu names or prices are changed.
+
+Supplier expenses remain in `manual_charges` with `supplier_id`; they are queried as operating expenses and are not posted into `ledger_entries`. The client ledger is reserved for breakfast debits, lunch debits, and payment credits.
+
+Default currency is `DH`; the migration updates the prior development `€` setting when present.

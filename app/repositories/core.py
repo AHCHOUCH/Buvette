@@ -10,7 +10,7 @@ from sqlalchemy.orm import joinedload
 
 from app.models import (
     BreakfastOrder, BreakfastProduct, Client, LedgerEntry, LunchMenu, LunchOrder,
-    ManualCharge, Payment, Setting,
+    ManualCharge, Payment, Setting, WeeklyMenu, DailyMenu, FoodPlate, FoodPlateVariant,
 )
 from app.utils.constants import LEDGER_CREDIT, LEDGER_DEBIT
 
@@ -68,6 +68,7 @@ class BreakfastRepository:
 class LunchRepository:
     def __init__(self, session): self.session = session
     def menus(self): return self.session.query(LunchMenu).order_by(LunchMenu.weekday).all()
+    def weekly_menus(self): return self.session.query(WeeklyMenu).order_by(WeeklyMenu.week_start_date.desc()).all()
     def menu_for_weekday(self, weekday): return self.session.query(LunchMenu).filter_by(weekday=weekday).first()
     def save_menu(self, menu): self.session.add(menu); return menu
     def save_order(self, order): self.session.add(order); return order
