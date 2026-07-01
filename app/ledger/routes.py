@@ -1,6 +1,15 @@
-"""Route declarations for the ledger feature.
+"""Routes for the ledger feature."""
 
-Routes will be added when the ledger module is implemented. Route handlers must
-remain thin and coordinate HTTP requests, validation, service calls, and
-responses only.
-"""
+from flask import Blueprint, render_template
+from flask_login import login_required
+
+
+ledger_bp = Blueprint("ledger", __name__, url_prefix="/ledger")
+
+
+@ledger_bp.get("/")
+@login_required
+def index():
+    """Display a safe placeholder until the ledger workflow is implemented."""
+
+    return render_template("placeholder.html", module_name="Ledger")

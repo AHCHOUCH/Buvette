@@ -27,7 +27,7 @@ This document records operational rules for Buvette Manager. It must be updated 
 
 ## Authentication and permissions
 
-Authentication is planned but not implemented. Constants exist for administrator and cashier roles. Future permission rules should define which users can manage settings, record payments, modify charges, and view ledger data.
+Authentication is implemented for foundation verification with temporary administrator and cashier users. Authenticated users may access the dashboard and placeholder module pages. Future permission rules should define which roles can manage settings, record payments, modify charges, and view ledger data before durable user administration is implemented.
 
 ## Documentation maintenance
 

@@ -1,6 +1,15 @@
-"""Route declarations for the breakfast feature.
+"""Routes for the breakfast feature."""
 
-Routes will be added when the breakfast module is implemented. Route handlers must
-remain thin and coordinate HTTP requests, validation, service calls, and
-responses only.
-"""
+from flask import Blueprint, render_template
+from flask_login import login_required
+
+
+breakfast_bp = Blueprint("breakfast", __name__, url_prefix="/breakfast")
+
+
+@breakfast_bp.get("/")
+@login_required
+def index():
+    """Display a safe placeholder until the breakfast workflow is implemented."""
+
+    return render_template("placeholder.html", module_name="Breakfast")

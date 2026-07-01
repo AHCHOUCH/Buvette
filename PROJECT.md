@@ -4,7 +4,7 @@
 
 ## Current phase
 
-The project is in the domain-foundation phase. The repository now contains the modular project structure, a minimal application factory, centralized SQLAlchemy models, reusable domain services, shared validators/helpers, and a touch-first UI foundation. Complete business workflows are intentionally not implemented yet.
+The project is in the runnable foundation phase. The repository contains the modular project structure, an operational Flask application factory, registered feature blueprints, centralized SQLAlchemy models, reusable domain services, shared validators/helpers, authentication placeholders, Docker support, and a touch-first UI foundation. Complete business workflows are intentionally not implemented yet.
 
 ## Application structure
 
@@ -18,6 +18,7 @@ The project is in the domain-foundation phase. The repository now contains the m
 - `app/ledger`: ledger preparation and balance services.
 - `app/settings`: application and operational configuration placeholders.
 - `app/models`: centralized `User`, `Client`, and `LedgerEntry` models.
+- `flask_login.py` and `flask_migrate.py`: local compatibility shims that preserve offline runnable behavior when third-party packages are unavailable; production installs should use the dependencies listed in `requirements.txt`.
 - `app/services`: shared business services that span features.
 - `app/forms`: shared form helpers and validators.
 - `app/templates`: Jinja templates organized by layout, components, and feature.
@@ -36,12 +37,14 @@ The project is in the domain-foundation phase. The repository now contains the m
 ## Implementation status
 
 - Project directories: created.
-- Application factory and SQLAlchemy extension: implemented.
-- Feature route modules: present as non-runnable placeholders; no feature endpoints are implemented yet.
+- Application factory, SQLAlchemy, Flask-Login, Flask-Migrate, and CSRF initialization: implemented.
+- Feature route modules: registered with protected placeholder pages until each workflow is implemented.
 - Models: `User`, `Client`, and `LedgerEntry` implemented for the shared domain foundation.
 - Database migrations: `migrations/0001_domain_foundation.sql` documents non-destructive table creation.
 - Services: reusable `ClientService`, `LedgerService`, and `DashboardService` interfaces implemented.
-- Templates/static assets: touch-first base layout, reusable components, design-system CSS, and minimal JavaScript utilities implemented.
+- Templates/static assets: touch-first base layout, navigation, login, dashboard placeholders, reusable components, design-system CSS, Bootstrap loading, and minimal JavaScript utilities implemented.
+- Default routes: `/` redirects by authentication state and `/health` returns `{"status": "ok"}` for Docker health checks.
+- Docker: `Dockerfile`, `docker-compose.yml`, and `.dockerignore` added for foreground startup on port 5000.
 - Tests: directory created; test suite not yet implemented.
 
 ## Development workflow

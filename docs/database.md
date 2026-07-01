@@ -30,3 +30,10 @@ Normalized financial record with client, debit/credit type, amount, running bala
 ## Migration policy
 
 Every schema change must include a migration and an update to this document describing the intent and impact. Before implementing a feature, the required database changes must be explained; if none are required, that must be stated explicitly.
+
+
+## Runtime initialization
+
+The application factory imports the centralized model metadata and calls `db.create_all()` during startup so a missing SQLite database file is created automatically for local and Docker development. This is a foundation convenience only; future schema changes must still be expressed as migrations.
+
+Existing SQL migrations can be applied manually against SQLite with commands such as `sqlite3 instance/buvette-manager.sqlite3 < migrations/0001_domain_foundation.sql`, or managed through Flask-Migrate once migration scripts are generated with `flask db migrate` and applied with `flask db upgrade`.
