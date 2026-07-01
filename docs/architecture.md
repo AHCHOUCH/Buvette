@@ -58,3 +58,17 @@ Database access for MVP workflows is centralized in `app/repositories/core.py`. 
 ## MVP modules
 
 Clients, breakfast, lunch, manual charges, payments, ledger, dashboard, and settings now have working authenticated pages. Transaction services post ledger entries immediately after their source record is flushed so balances, filtering, and dashboard metrics stay consistent.
+
+## Production hardening architecture
+
+- Authentication is database-backed through the centralized `User` model and `app.auth.service`.
+- Authorization is enforced server-side through `app.permissions.permission_required`; navigation visibility is only a UI convenience and not the security boundary.
+- Localization is intentionally lightweight in `app.i18n`, selecting French LTR for administrators and Arabic RTL for cashiers.
+- Supplier expenses use the charges module but are modeled independently from client ledger entries.
+- Audit logging is centralized in `app.audit.log_audit` and stored in `AuditLog` for administrator review.
+
+## Localization and authorization refinement
+
+Localization now uses the `app/i18n` package with key-based translations and role-aware language selection. Administrator pages default to French/LTR and cashier pages default to Arabic/RTL. Templates receive `_`, `weekday_key`, `ui_lang`, and `ui_dir` from the application context.
+
+Authorization uses named permissions such as `lunch.manage`, `payments.create`, and `dangerous.delete`. Legacy route aliases are normalized for backward compatibility, but server-side decorators remain the security boundary.

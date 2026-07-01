@@ -2,13 +2,14 @@
 from flask import Blueprint, flash, redirect, render_template, url_for
 from flask_login import current_user, login_required
 from app import db
+from app.permissions import permission_required
 from app.clients.service import ClientService
 from app.payments.forms import PaymentForm
 from app.payments.service import PaymentService
 
 payments_bp=Blueprint('payments', __name__, url_prefix='/payments')
 @payments_bp.route('/', methods=['GET','POST'])
-@login_required
+@permission_required('payments')
 def index():
     form=PaymentForm(); clients=ClientService(db.session).list_clients(); form.client_id.choices=[(c.id,c.name) for c in clients]
     svc=PaymentService(db.session)

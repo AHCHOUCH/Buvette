@@ -41,3 +41,21 @@ When a feature changes business behavior, this document must be updated in the s
 - Cash payments credit the selected client and may be partial payments or overpayments.
 - Every balance-affecting event is visible in the chronological ledger.
 - Over-limit debt displays a warning badge but does not block purchases.
+
+## Production hardening rules
+
+- Administrators can manage dashboard, clients, breakfast products, lunch menus, suppliers, supplier charges, payments, ledger, settings, users, logs, archive, and guarded delete actions.
+- Cashiers can use operational screens only: dashboard, breakfast ordering, lunch charging, payments, client selection, and basic balance visibility. They cannot access settings, users, logs, system configuration, password management, or dangerous delete routes.
+- Supplier charges are buvette expenses. They never require a client, never post to the client ledger, and never change client balances.
+- Client ledger history is limited to breakfast debits, lunch debits, and payment credits.
+- Archive is the normal safe removal operation. Dangerous delete requires an administrator password, writes an audit log, and is blocked for records with financial history.
+- Employee numbers are generated automatically when blank, using a simple `EMP-0001` style sequence; administrators may still override with a unique value.
+- Amount keypads keep valid decimal input: blank plus `.` becomes `0.`, a second `.` is ignored, backspace deletes one character, and clear empties the field.
+
+## Weekly lunch menus
+
+Lunch menus are now organized by week. A `WeeklyMenu` owns seven `DailyMenu` rows, each day can contain multiple `FoodPlate` rows, and each plate has active/inactive `FoodPlateVariant` price options. Default variants are small (`Petit / صغير`, 20 DH) and big (`Grand / كبير`, 25 DH). Cashiers must select a client, plate, and variant before charging lunch. If no active menu exists for today, the UI shows a translated warning and no silent charge is created.
+
+## Dashboard metrics
+
+Dashboard average activity metrics use the last 30 days as the default period: breakfast orders per day, lunch orders per day, client payments per day, and supplier expenses per day.

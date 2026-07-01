@@ -56,3 +56,7 @@ For future changes:
 3. Explain required database changes and add an additive migration when schema changes.
 4. Update tests and documentation in the same change set.
 5. Preserve touchscreen-first UI conventions.
+
+## Production hardening update
+
+The application now includes database-backed users, role permissions, French/Arabic role-aware UI shell behavior, supplier expenses, audit logs, automatic employee numbers, guarded archive/delete patterns, and corrected numeric keypad decimal input. Supplier charges are expenses and are intentionally excluded from client balances and client ledger entries.

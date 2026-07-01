@@ -2,13 +2,14 @@
 from flask import Blueprint, flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 from app import db
+from app.permissions import permission_required
 from app.breakfast.forms import BreakfastProductForm
 from app.breakfast.service import BreakfastService
 from app.clients.service import ClientService
 
 breakfast_bp=Blueprint('breakfast', __name__, url_prefix='/breakfast')
 @breakfast_bp.route('/', methods=['GET','POST'])
-@login_required
+@permission_required('breakfast')
 def index():
     svc=BreakfastService(db.session); client_svc=ClientService(db.session)
     if request.method=='POST':
@@ -18,7 +19,7 @@ def index():
         except Exception as exc: db.session.rollback(); flash(str(exc),'danger')
     return render_template('breakfast/index.html', clients=client_svc.list_clients(), products=svc.products())
 @breakfast_bp.route('/products', methods=['GET','POST'])
-@login_required
+@permission_required('breakfast')
 def products():
     svc=BreakfastService(db.session); form=BreakfastProductForm()
     if form.validate_on_submit():

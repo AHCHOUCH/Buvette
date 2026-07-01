@@ -29,3 +29,15 @@ The foundation includes reusable components for buttons, cards, modals, search b
 ## JavaScript
 
 Global JavaScript lives in `app/static/js/app.js`. It provides reusable utilities only: confirmation helper, autofocus behavior, debounced search events, and notification helper. No JavaScript framework or jQuery is used.
+
+## Tablet production UI additions
+
+- Touch targets must be at least 56px high; primary transaction buttons and keypad buttons should be 64px or larger.
+- Administrator screens use French labels and LTR layout. Cashier screens use Arabic labels where provided and RTL layout.
+- Active navigation state must be visually obvious and not rely on hover.
+- Login uses a centered card, large fields, a large submit button, and shows default test credentials only when Flask debug mode is enabled.
+- Numeric amount fields should use the shared keypad behavior in `app/static/js/app.js`.
+
+## Touch client selector
+
+Cashier lunch workflows use large searchable client cards instead of small dropdowns. Client cards support name and employee-number filtering, single-tap selection, and visible selected state. Shared numeric keypad logic supports all amount inputs: empty plus decimal becomes `0.`, duplicate decimals are ignored, digits append, backspace removes one character, and clear empties the field.
