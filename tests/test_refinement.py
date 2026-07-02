@@ -79,3 +79,52 @@ class ClosureRegressionTests(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+class UrgentBugfixTests(unittest.TestCase):
+    def setUp(self):
+        self.app=create_app(); self.app.config.update(TESTING=True, WTF_CSRF_ENABLED=False)
+        self.ctx=self.app.app_context(); self.ctx.push(); db.drop_all(); db.create_all()
+        from app import _seed_data
+        _seed_data(); self.client=self.app.test_client()
+    def tearDown(self):
+        db.session.remove(); db.drop_all(); self.ctx.pop()
+    def login(self, username='administrator', password='administrator'):
+        return self.client.post('/auth/login', data={'username':username,'password':password}, follow_redirects=True)
+    def test_cashier_dashboard_200_arabic_not_unauthorized(self):
+        self.login('cashier','cashier')
+        response=self.client.get('/dashboard/')
+        body=response.data.decode()
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('لوحة التحكم', body)
+        self.assertNotIn('غير مسموح', body)
+    def test_lunch_forced_db_error_hides_sql_text(self):
+        from unittest.mock import patch
+        self.login('cashier','cashier')
+        with patch('app.lunch.service.LunchService.charge_today', side_effect=Exception('sqlite IntegrityError SQL INSERT INTO lunch_orders sqlalche.me')):
+            response=self.client.post('/lunch/', data={'client_id':'1','plate_id':'1','variant_id':'1'}, follow_redirects=True)
+        body=response.data.decode()
+        self.assertIn('حدث خطأ', body)
+        for forbidden in ('sqlite','IntegrityError','SQL','sqlalche.me','INSERT INTO'):
+            self.assertNotIn(forbidden, body)
+    def test_weekend_lunch_closed_message(self):
+        from unittest.mock import patch
+        self.login('cashier','cashier')
+        with patch('app.lunch.routes.date') as fake_date:
+            fake_date.today.return_value=date(2026,7,4)
+            fake_date.side_effect=lambda *a, **k: date(*a, **k)
+            response=self.client.get('/lunch/')
+        self.assertIn('البوفيت مغلق اليوم'.encode(), response.data)
+    def test_no_menu_warning_message(self):
+        self.login('cashier','cashier')
+        response=self.client.get('/lunch/')
+        self.assertIn('لا توجد قائمة نشطة لهذا اليوم'.encode(), response.data)
+    def test_variant_labels_by_role_language(self):
+        svc=LunchService(db.session); week=svc.create_week(date.today(), 'Current'); db.session.flush()
+        svc.add_plate(week.days[date.today().weekday()].id, 'Plat'); db.session.commit()
+        self.login('cashier','cashier')
+        ar=self.client.get('/lunch/').data.decode()
+        self.assertIn('صغير — 20 DH', ar)
+        self.client.post('/auth/logout', follow_redirects=True)
+        self.login('administrator','administrator')
+        fr=self.client.get('/lunch/').data.decode()
+        self.assertIn('Petit — 20 DH', fr)

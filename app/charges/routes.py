@@ -7,6 +7,8 @@ from app.audit import log_audit
 from app.charges.forms import DeleteConfirmForm, ManualChargeForm, SupplierForm
 from app.charges.service import ChargeService, SupplierService
 from app.permissions import permission_required
+from app.i18n import _
+from app.utils.errors import handle_form_exception
 charges_bp=Blueprint('charges', __name__, url_prefix='/charges')
 @charges_bp.route('/', methods=['GET','POST'])
 @permission_required('charges')
@@ -16,8 +18,8 @@ def index():
         try:
             charge=ChargeService(db.session).create_charge(form.supplier_id.data, form.amount.data, form.category.data, form.notes.data, getattr(current_user,'id',None))
             log_audit('supplier_charge.create','SupplierCharge',charge.id,'Supplier expense recorded')
-            db.session.commit(); flash('Charge fournisseur enregistrée.','success'); return redirect(url_for('charges.index'))
-        except ValueError as exc: db.session.rollback(); flash(str(exc),'danger')
+            db.session.commit(); flash(_('flash.charge_saved'),'success'); return redirect(url_for('charges.index'))
+        except Exception as exc: handle_form_exception(exc, 'form.failed')
     charges=db.session.query(__import__('app.models').models.ManualCharge).order_by(__import__('app.models').models.ManualCharge.created_at.desc()).limit(50).all()
     return render_template('charges/index.html', form=form, charges=charges)
 @charges_bp.route('/suppliers', methods=['GET','POST'])
@@ -28,7 +30,7 @@ def suppliers():
         try:
             supplier=service.save(form.name.data, form.phone.data, form.notes.data, form.active.data); log_audit('supplier.create','Supplier',None,f'Supplier {supplier.name} saved')
             db.session.commit(); flash('Fournisseur enregistré.','success'); return redirect(url_for('charges.suppliers'))
-        except ValueError as exc: db.session.rollback(); flash(str(exc),'danger')
+        except Exception as exc: handle_form_exception(exc, 'form.failed')
     return render_template('charges/suppliers.html', form=form, suppliers=service.list_suppliers(include_archived=request.args.get('include_archived')=='1'))
 @charges_bp.post('/suppliers/<int:supplier_id>/archive')
 @permission_required('suppliers')

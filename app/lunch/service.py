@@ -7,7 +7,7 @@ from app.utils.constants import LEDGER_DEBIT, REFERENCE_LUNCH
 from app.utils.formatting import normalize_money
 from app.utils.parsing import parse_required_int
 
-DEFAULT_VARIANTS = (('small', 'Petit / صغير', '20.00'), ('big', 'Grand / كبير', '25.00'))
+DEFAULT_VARIANTS = (('small', 'small', '20.00'), ('big', 'big', '25.00'))
 
 def week_start_for(day=None):
     day = day or date.today()
@@ -69,7 +69,7 @@ class LunchService:
             plate_id=parse_required_int(plate_id); variant_id=parse_required_int(variant_id)
             plate=self.session.get(FoodPlate, plate_id); variant=self.session.get(FoodPlateVariant, variant_id)
             if not plate or not plate.active or not variant or not variant.active or variant.food_plate_id != plate.id: raise ValueError('error.required')
-            order=LunchOrder(client_id=client_id, food_plate_id=plate.id, variant_id=variant.id, service_date=service_date, menu_name=plate.name, plate_name_snapshot=plate.name, variant_label_snapshot=variant.label, amount=variant.price, created_by_user_id=user_id)
+            order=LunchOrder(client_id=client_id, food_plate_id=plate.id, variant_id=variant.id, service_date=service_date, menu_name=plate.name, plate_name_snapshot=plate.name, variant_label_snapshot=variant.size_key or variant.label, amount=variant.price, created_by_user_id=user_id)
         else:
             menu=self.repo.menu_for_weekday(service_date.weekday())
             if not menu or not menu.is_active: raise ValueError('lunch.no_menu_today')

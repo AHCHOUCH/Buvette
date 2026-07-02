@@ -7,9 +7,9 @@
   <form method="post" id="lunch-charge-form">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <div class="form-row"><label for="client_id">{{ _('field.client') }}</label><select id="client_id" name="client_id" required><option value="">{{ _('client.selector.title') }}</option>{% for client in clients %}<option value="{{ client.id }}">{{ client.employee_number or '—' }} — {{ client.name }} — {{ _('client.balance') }} {{ client.current_balance if client.current_balance is defined else '' }}</option>{% endfor %}</select></div>
-    <div class="form-row"><label for="plate_id">{{ _('lunch.today_plates') }}</label><select id="plate_id" name="plate_id" required {% if closed_today or not plates %}disabled{% endif %}><option value="">{{ _('button.add_plate') }}</option>{% for plate in plates %}<option value="{{ plate.id }}">{{ plate.name }}</option>{% endfor %}</select></div>
-    <div class="form-row"><label for="variant_id">{{ _('field.variant') }}</label><select id="variant_id" name="variant_id" required {% if closed_today or not plates %}disabled{% endif %}><option value="">{{ _('field.variant') }}</option>{% for plate in plates %}{% for variant in plate.variants if variant.active %}<option value="{{ variant.id }}" data-plate="{{ plate.id }}">{{ variant.label }} — {{ variant.price }} {{ _('currency.default') }}</option>{% endfor %}{% endfor %}</select></div>
-    <button class="btn btn-primary btn-large" {% if closed_today or not plates %}disabled{% endif %}>{{ _('lunch.confirm_charge') }}</button>
+    <div class="form-row"><label for="plate_id">{{ _('lunch.today_plates') }}</label><select id="plate_id" name="plate_id" required {% if closed_today or not plates %}disabled{% endif %}><option value="">{{ _('placeholder.select_plate') }}</option>{% for plate in plates %}<option value="{{ plate.id }}">{{ plate.name }}</option>{% endfor %}</select></div>
+    <div class="form-row"><label for="variant_id">{{ _('field.variant') }}</label><select id="variant_id" name="variant_id" required {% if closed_today or not plates %}disabled{% endif %}><option value="">{{ _('placeholder.select_variant') }}</option>{% for plate in plates %}{% for variant in plate.variants if variant.active %}<option value="{{ variant.id }}" data-plate="{{ plate.id }}">{{ variant_label(variant) }} — {{ variant.price|int }} {{ _('currency.default') }}</option>{% endfor %}{% endfor %}</select></div>
+    <button id="lunch-confirm" class="btn btn-primary btn-large" disabled>{{ _('lunch.confirm_charge') }}</button>
   </form>
 </section>
 {% endblock %}
