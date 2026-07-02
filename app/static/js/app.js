@@ -99,6 +99,29 @@
     });
   }
 
+
+
+  function bindLunchForm() {
+    var form = document.getElementById('lunch-charge-form');
+    if (!form) { return; }
+    var client = form.querySelector('#client_id');
+    var plate = form.querySelector('#plate_id');
+    var variant = form.querySelector('#variant_id');
+    var confirm = form.querySelector('#lunch-confirm');
+    function sync() {
+      var plateId = plate ? plate.value : '';
+      if (variant) {
+        variant.querySelectorAll('option[data-plate]').forEach(function (option) {
+          option.hidden = option.getAttribute('data-plate') !== plateId;
+        });
+        if (variant.selectedOptions.length && variant.selectedOptions[0].hidden) { variant.value = ''; }
+      }
+      if (confirm) { confirm.disabled = !(client && client.value && plate && plate.value && variant && variant.value) || plate.disabled || variant.disabled; }
+    }
+    [client, plate, variant].forEach(function (el) { if (el) { el.addEventListener('change', sync); } });
+    sync();
+  }
+
   window.Buvette = { debounce: debounce, notify: notify, confirmAction: confirmAction, applyNumericKey: applyNumericKey };
   document.addEventListener('DOMContentLoaded', function () {
     autoFocus();
@@ -106,5 +129,6 @@
     bindQuantityButtons();
     bindNumericKeypad();
     bindClientSelector();
+    bindLunchForm();
   });
 }());

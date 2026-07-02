@@ -56,3 +56,22 @@ python -m unittest discover -s tests -v
 For a clean pilot database, start the app once or apply the SQL migrations in order. For an existing MVP SQLite database, back up `instance/buvette-manager.sqlite3` first, then apply `migrations/0005_mvp_closure.sql` after prior migrations. This makes legacy `lunch_orders.menu_id` nullable so weekly plate/variant orders can be saved safely.
 
 Docker is expected to run on port `5000`, persist `instance` data through the `buvette_instance` volume, and use `/health` for health checks.
+
+## SQLite migration / local database repair
+
+Apply the schema migrations after pulling changes, especially if an existing local SQLite database was created before weekly lunch plates were added:
+
+```bash
+python scripts/apply_migrations.py
+```
+
+This preserves local data and rebuilds `lunch_orders` so the legacy `menu_id` column is nullable. The app also performs a startup compatibility check for SQLite development databases and repairs the old `lunch_orders.menu_id NOT NULL` schema when detected.
+
+Development-only reset option (deletes local SQLite data and Docker volumes):
+
+```bash
+docker compose down -v
+docker compose up --build
+```
+
+Use the reset option only when preserving local data is not required.

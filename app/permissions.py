@@ -5,7 +5,7 @@ from app.utils.constants import ROLE_ADMIN, ROLE_CASHIER
 
 ADMIN_PERMISSIONS = {'dashboard.view','clients.manage','breakfast.manage','breakfast.sell','lunch.manage','lunch.sell','suppliers.manage','expenses.manage','payments.manage','ledger.view','reports.view','settings.manage','users.manage','logs.view','dangerous.delete'}
 CASHIER_PERMISSIONS = {'dashboard.view_limited','clients.select','clients.view_basic','breakfast.manage','breakfast.sell','lunch.manage','lunch.sell','payments.create'}
-ALIASES = {'dashboard':'dashboard.view','clients':'clients.manage','clients_basic':'clients.view_basic','breakfast':'breakfast.manage','lunch':'lunch.manage','suppliers':'suppliers.manage','charges':'expenses.manage','payments':'payments.create','ledger':'ledger.view','settings':'settings.manage','users':'users.manage','logs':'logs.view','delete':'dangerous.delete'}
+ALIASES = {'dashboard':'dashboard.view_limited','clients':'clients.manage','clients_basic':'clients.view_basic','breakfast':'breakfast.manage','lunch':'lunch.manage','suppliers':'suppliers.manage','charges':'expenses.manage','payments':'payments.create','ledger':'ledger.view','settings':'settings.manage','users':'users.manage','logs':'logs.view','delete':'dangerous.delete'}
 
 def normalize_permission(permission):
     return ALIASES.get(permission, permission)

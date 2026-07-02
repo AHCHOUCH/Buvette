@@ -126,7 +126,11 @@ def _register_template_helpers(app: Flask) -> None:
         for label, items in groups:
             visible=[i for i in items if has_permission(i[2]) or (i[2]=='dashboard.view' and has_permission('dashboard.view_limited'))]
             if visible: filtered.append((label, visible))
-        return {'_': _, 'weekday_key': weekday_key, 'ui_lang': lang(), 'ui_dir': direction(), 'nav_groups': filtered}
+        
+        def variant_label(variant):
+            key = getattr(variant, 'size_key', '') or getattr(variant, 'label', '')
+            return _(f'variant.{key}') if key in ('small', 'big') else getattr(variant, 'label', '')
+        return {'_': _, 'weekday_key': weekday_key, 'variant_label': variant_label, 'ui_lang': lang(), 'ui_dir': direction(), 'nav_groups': filtered}
 
 def _ensure_database(app: Flask) -> None:
     """Create the SQLite database automatically when no database file exists."""
@@ -167,6 +171,37 @@ def _ensure_sqlite_columns() -> None:
     for statement in statements:
         db.session.execute(text(statement))
     if statements: db.session.commit()
+    if 'lunch_orders' in tables:
+        menu_col = next((c for c in inspector.get_columns('lunch_orders') if c['name'] == 'menu_id'), None)
+        if menu_col and not menu_col.get('nullable', True):
+            _rebuild_lunch_orders_nullable_menu_id()
+
+
+def _rebuild_lunch_orders_nullable_menu_id() -> None:
+    """Rebuild local SQLite lunch_orders when legacy menu_id is NOT NULL."""
+    from sqlalchemy import text
+    db.session.execute(text('PRAGMA foreign_keys=off'))
+    db.session.execute(text('DROP TABLE IF EXISTS lunch_orders_new'))
+    db.session.execute(text("""
+        CREATE TABLE lunch_orders_new (
+          id INTEGER PRIMARY KEY, client_id INTEGER NOT NULL, menu_id INTEGER NULL,
+          food_plate_id INTEGER NULL, variant_id INTEGER NULL, service_date DATE NOT NULL,
+          menu_name VARCHAR(160) NOT NULL DEFAULT '', plate_name_snapshot VARCHAR(160) NOT NULL DEFAULT '',
+          variant_label_snapshot VARCHAR(80) NOT NULL DEFAULT '', created_by_user_id INTEGER NULL,
+          amount NUMERIC(12,2) NOT NULL CHECK (amount >= 0), created_at DATETIME NOT NULL
+        )
+    """))
+    from sqlalchemy import inspect
+    existing = {c['name'] for c in inspect(db.engine).get_columns('lunch_orders')}
+    cols = ['id','client_id','menu_id','food_plate_id','variant_id','service_date','menu_name','plate_name_snapshot','variant_label_snapshot','created_by_user_id','amount','created_at']
+    select_cols = [col if col in existing else "''" if col in ('menu_name','plate_name_snapshot','variant_label_snapshot') else 'NULL' for col in cols]
+    db.session.execute(text(f"INSERT INTO lunch_orders_new ({','.join(cols)}) SELECT {','.join(select_cols)} FROM lunch_orders"))
+    db.session.execute(text('DROP TABLE lunch_orders'))
+    db.session.execute(text('ALTER TABLE lunch_orders_new RENAME TO lunch_orders'))
+    for stmt in ('CREATE INDEX IF NOT EXISTS ix_lunch_orders_client_id ON lunch_orders(client_id)', 'CREATE INDEX IF NOT EXISTS ix_lunch_orders_service_date ON lunch_orders(service_date)', 'CREATE INDEX IF NOT EXISTS ix_lunch_orders_food_plate_id ON lunch_orders(food_plate_id)', 'CREATE INDEX IF NOT EXISTS ix_lunch_orders_variant_id ON lunch_orders(variant_id)'):
+        db.session.execute(text(stmt))
+    db.session.execute(text('PRAGMA foreign_keys=on'))
+    db.session.commit()
 
 def _seed_data() -> None:
     """Seed default products, menus, settings, and a sample client for first use."""
