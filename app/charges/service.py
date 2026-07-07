@@ -27,6 +27,6 @@ class ChargeService:
         if amount <= 0: raise ValueError('Amount must be greater than zero.')
         if category not in CATEGORIES: raise ValueError('Invalid charge category.')
         if not self.session.get(Supplier, supplier_id): raise ValueError('Supplier is required.')
-        charge=ManualCharge(supplier_id=supplier_id, amount=amount, category=category, notes=notes)
+        charge=ManualCharge(supplier_id=supplier_id, amount=amount, category=category, notes=notes, created_by_user_id=user_id)
         self.repo.save(charge); self.session.flush()
         return charge

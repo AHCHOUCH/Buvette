@@ -46,3 +46,31 @@ class LedgerService:
 
     def list_entries(self, **filters): return self.repo.list(**filters)
     def recent(self, entry_type, limit=5): return self.repo.recent(entry_type, limit)
+
+class GlobalLedgerService:
+    def __init__(self, session): self.session=session
+    def rows(self, date_from=None, date_to=None, direction=None, client_id=None, supplier_id=None, category=None, limit=None):
+        from datetime import datetime, time
+        from app.models import LedgerEntry, ManualCharge
+        rows=[]
+        q=self.session.query(LedgerEntry)
+        if date_from: q=q.filter(LedgerEntry.timestamp>=datetime.combine(date_from, time.min))
+        if date_to: q=q.filter(LedgerEntry.timestamp<=datetime.combine(date_to, time.max))
+        if client_id: q=q.filter(LedgerEntry.client_id==client_id)
+        if direction in (None,'all','income'):
+            for e in q.all():
+                rows.append({'date':e.timestamp,'direction':'income','category':e.reference_type or e.entry_type,'source':e.client.name if e.client else '', 'description':e.description or '', 'amount':e.amount, 'created_by':getattr(e.created_by_user,'display_name','') or '', 'reference_id':e.reference_id or '', 'raw':e})
+        if direction in (None,'all','expense'):
+            cq=self.session.query(ManualCharge)
+            if date_from: cq=cq.filter(ManualCharge.created_at>=datetime.combine(date_from, time.min))
+            if date_to: cq=cq.filter(ManualCharge.created_at<=datetime.combine(date_to, time.max))
+            if supplier_id: cq=cq.filter(ManualCharge.supplier_id==supplier_id)
+            if category: cq=cq.filter(ManualCharge.category==category)
+            for c in cq.all():
+                rows.append({'date':c.created_at,'direction':'expense','category':c.category,'source':c.supplier.name if c.supplier else '', 'description':c.notes or '', 'amount':c.amount, 'created_by':'', 'reference_id':c.id, 'raw':c})
+        rows.sort(key=lambda r: r['date'], reverse=True)
+        return rows[:limit] if limit else rows
+    def totals(self, rows):
+        income=sum((r['amount'] for r in rows if r['direction']=='income'), Decimal('0.00'))
+        expense=sum((r['amount'] for r in rows if r['direction']=='expense'), Decimal('0.00'))
+        return {'income':normalize_money(income),'expense':normalize_money(expense),'net':normalize_money(income-expense)}

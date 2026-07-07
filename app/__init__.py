@@ -164,15 +164,23 @@ def _ensure_sqlite_columns() -> None:
         if 'users' in tables and name not in user_cols: statements.append(f'ALTER TABLE users ADD COLUMN {name} {ddl}')
     charge_cols=cols('manual_charges')
     if 'manual_charges' in tables and 'supplier_id' not in charge_cols: statements.append('ALTER TABLE manual_charges ADD COLUMN supplier_id INTEGER')
+    if 'manual_charges' in tables and 'created_by_user_id' not in charge_cols: statements.append('ALTER TABLE manual_charges ADD COLUMN created_by_user_id INTEGER')
+    product_cols=cols('breakfast_products')
+    if 'breakfast_products' in tables and 'product_type' not in product_cols: statements.append("ALTER TABLE breakfast_products ADD COLUMN product_type VARCHAR(30) NOT NULL DEFAULT 'breakfast'")
+    if 'breakfast_products' in tables and 'archived_at' not in product_cols: statements.append('ALTER TABLE breakfast_products ADD COLUMN archived_at DATETIME')
 
     # Weekly menu compatibility columns for local SQLite databases. Production should apply migrations/0004_weekly_menu_i18n_permissions.sql.
     lunch_cols=cols('lunch_orders')
+    if 'lunch_order_items' not in tables:
+        statements.append("CREATE TABLE lunch_order_items (id INTEGER PRIMARY KEY, lunch_order_id INTEGER NOT NULL, product_id INTEGER, product_name_snapshot VARCHAR(120) NOT NULL, quantity INTEGER NOT NULL, unit_price_snapshot NUMERIC(12,2) NOT NULL, total NUMERIC(12,2) NOT NULL)")
     if 'lunch_orders' in tables:
         for name, ddl in {'food_plate_id':'INTEGER','variant_id':'INTEGER','plate_name_snapshot':"VARCHAR(160) DEFAULT ''",'variant_label_snapshot':"VARCHAR(80) DEFAULT ''",'created_by_user_id':'INTEGER'}.items():
             if name not in lunch_cols: statements.append(f'ALTER TABLE lunch_orders ADD COLUMN {name} {ddl}')
     for statement in statements:
         db.session.execute(text(statement))
     if statements: db.session.commit()
+    if 'lunch_order_items' not in tables:
+        statements.append("CREATE TABLE lunch_order_items (id INTEGER PRIMARY KEY, lunch_order_id INTEGER NOT NULL, product_id INTEGER, product_name_snapshot VARCHAR(120) NOT NULL, quantity INTEGER NOT NULL, unit_price_snapshot NUMERIC(12,2) NOT NULL, total NUMERIC(12,2) NOT NULL)")
     if 'lunch_orders' in tables:
         menu_col = next((c for c in inspector.get_columns('lunch_orders') if c['name'] == 'menu_id'), None)
         if menu_col and not menu_col.get('nullable', True):
