@@ -78,3 +78,14 @@ Authorization uses named permissions such as `lunch.manage`, `payments.create`, 
 The key/value `settings` table remains the source for organization identity. `SettingsService.identity()` normalizes defaults for templates, and the base layout maps configured colors to CSS variables instead of scattering inline color values. Logos are saved under `app/static/uploads/` and referenced by their static relative path.
 
 Ledger export is implemented in the ledger blueprint as an admin-protected CSV endpoint. It reuses `LedgerService.list_entries()` so exported rows and on-screen filters follow the same query behavior. Export actions are written to `AuditLog` through the centralized audit helper.
+
+## Functional refinement: products, expenses, dashboards, lunch, and ledger
+
+- Administrators can create, edit, deactivate/archive, and safely delete unused products with password confirmation; used products remain protected to preserve order snapshots.
+- Cashiers may create buvette supplier expenses through the expenses workflow while supplier expenses remain separate from client balances.
+- The cashier dashboard is intentionally simplified to operational counts, payments, expenses created today, and quick actions; the admin dashboard keeps financial analytics and supports `daily`, `weekly`, `monthly`, and `3months` periods.
+- Lunch charging uses active plate variants configured on the weekly menu and stores the selected label/price snapshot. Active drink or lunch-extra products can be added with quantities and are included in the single lunch debit.
+- The client ledger remains balance-only for breakfast, lunch, and payments. The global ledger/report combines client income rows and supplier expense rows with income, expense, and net totals plus CSV export.
+- The application header now uses left/center/right zones so the logo and organization name stay visually centered in LTR and RTL layouts.
+- RTL pages use logical spacing and overflow guards so Arabic back buttons stay inside the viewport without horizontal page scroll.
+- Apply `migrations/0007_functional_refinement.sql` on existing databases before deployment.

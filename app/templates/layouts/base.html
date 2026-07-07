@@ -13,8 +13,9 @@
 <body class="role-{{ current_user.role if current_user.is_authenticated else 'guest' }}">
   <a class="skip-link" href="#main-content">{{ _('button.back') }}</a>
   <header class="app-header">
-    <div class="brand-block">{% if identity.logo_path %}<img class="brand-logo" src="{{ url_for('static', filename=identity.logo_path) }}" alt="{{ identity.organization_name }}">{% endif %}<div><div class="app-title">{{ identity.organization_name }}</div>{% if current_user.is_authenticated %}<div class="app-user">{{ current_user.display_name }}</div>{% endif %}</div></div>
-    {% if current_user.is_authenticated %}<form method="post" action="{{ url_for('auth.logout') }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn btn-secondary" type="submit">{{ _('button.logout') }}</button></form>{% endif %}
+    <div class="header-zone header-start">{% if current_user.is_authenticated %}<form method="post" action="{{ url_for('auth.logout') }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn btn-secondary" type="submit">{{ _('button.logout') }}</button></form>{% endif %}</div>
+    <div class="brand-center">{% if identity.logo_path %}<img class="brand-logo" src="{{ url_for('static', filename=identity.logo_path) }}" alt="{{ identity.organization_name }}">{% endif %}<div class="brand-name">{{ identity.organization_name }}</div></div>
+    <div class="header-zone header-end">{% if current_user.is_authenticated %}<div class="app-user">{{ current_user.display_name }}</div>{% endif %}</div>
   </header>
   <div class="app-shell">
     {% if current_user.is_authenticated %}<aside class="app-sidebar" aria-label="{{ _('nav.dashboard') }}">{% for group_label, items in nav_groups %}<div class="nav-group"><div class="nav-group-title">{{ _(group_label) }}</div>{% for label, endpoint, perm in items %}<a class="nav-button {% if request.endpoint==endpoint %}active{% endif %}" href="{{ url_for(endpoint) }}">{{ _(label) }}</a>{% endfor %}</div>{% endfor %}</aside>{% endif %}

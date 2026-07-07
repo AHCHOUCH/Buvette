@@ -1,6 +1,6 @@
 """Business services for weekly lunch menus and charging."""
 from datetime import date, timedelta
-from app.models import DailyMenu, FoodPlate, FoodPlateVariant, LunchMenu, LunchOrder, WeeklyMenu
+from app.models import BreakfastProduct, DailyMenu, FoodPlate, FoodPlateVariant, LunchMenu, LunchOrder, LunchOrderItem, WeeklyMenu
 from app.repositories.core import LunchRepository
 from app.ledger.service import LedgerService
 from app.utils.constants import LEDGER_DEBIT, REFERENCE_LUNCH
@@ -63,17 +63,30 @@ class LunchService:
         menu.name=name; menu.price=normalize_money(price); menu.is_active=is_active
         if menu.price < 0: raise ValueError('Price cannot be negative.')
         self.repo.save_menu(menu); return menu
-    def charge_today(self, client_id, plate_id=None, variant_id=None, service_date=None, user_id=None):
+    def lunch_extras(self):
+        return self.session.query(BreakfastProduct).filter(BreakfastProduct.is_active.is_(True), BreakfastProduct.product_type.in_(['drink','lunch_extra'])).order_by(BreakfastProduct.name).all()
+    def charge_today(self, client_id, plate_id=None, variant_id=None, service_date=None, user_id=None, drink_quantities=None):
         service_date=service_date or date.today()
         if plate_id is not None or variant_id is not None:
             plate_id=parse_required_int(plate_id); variant_id=parse_required_int(variant_id)
             plate=self.session.get(FoodPlate, plate_id); variant=self.session.get(FoodPlateVariant, variant_id)
             if not plate or not plate.active or not variant or not variant.active or variant.food_plate_id != plate.id: raise ValueError('error.required')
-            order=LunchOrder(client_id=client_id, food_plate_id=plate.id, variant_id=variant.id, service_date=service_date, menu_name=plate.name, plate_name_snapshot=plate.name, variant_label_snapshot=variant.size_key or variant.label, amount=variant.price, created_by_user_id=user_id)
+            order=LunchOrder(client_id=client_id, food_plate_id=plate.id, variant_id=variant.id, service_date=service_date, menu_name=plate.name, plate_name_snapshot=plate.name, variant_label_snapshot=variant.label, amount=variant.price, created_by_user_id=user_id)
         else:
             menu=self.repo.menu_for_weekday(service_date.weekday())
             if not menu or not menu.is_active: raise ValueError('lunch.no_menu_today')
             order=LunchOrder(client_id=client_id, menu=menu, service_date=service_date, menu_name=menu.name, plate_name_snapshot=menu.name, variant_label_snapshot='', amount=menu.price, created_by_user_id=user_id)
+        
+        total=normalize_money(order.amount)
+        for product_id, qty in (drink_quantities or {}).items():
+            try: qty=int(qty or 0); pid=int(product_id)
+            except (TypeError, ValueError): continue
+            if qty <= 0: continue
+            product=self.session.get(BreakfastProduct, pid)
+            if not product or not product.is_active or product.product_type not in ('drink','lunch_extra'): continue
+            line=normalize_money(product.price * qty); total += line
+            order.items.append(LunchOrderItem(product=product, product_name_snapshot=product.name, quantity=qty, unit_price_snapshot=product.price, total=line))
+        order.amount=normalize_money(total)
         self.repo.save_order(order); self.session.flush()
         LedgerService(self.session).post_entry(client_id=client_id, entry_type=LEDGER_DEBIT, amount=order.amount, reference_type=REFERENCE_LUNCH, reference_id=order.id, description=f'Lunch: {order.plate_name_snapshot}', created_by_user_id=user_id)
         return order

@@ -11,7 +11,7 @@ from app.i18n import _
 from app.utils.errors import handle_form_exception
 charges_bp=Blueprint('charges', __name__, url_prefix='/charges')
 @charges_bp.route('/', methods=['GET','POST'])
-@permission_required('charges')
+@permission_required('expenses.create')
 def index():
     svc=SupplierService(db.session); form=ManualChargeForm(); form.supplier_id.choices=[(s.id,s.name) for s in svc.list_suppliers()]
     if form.validate_on_submit():
@@ -20,7 +20,12 @@ def index():
             log_audit('supplier_charge.create','SupplierCharge',charge.id,'Supplier expense recorded')
             db.session.commit(); flash(_('flash.charge_saved'),'success'); return redirect(url_for('charges.index'))
         except Exception as exc: handle_form_exception(exc, 'form.failed')
-    charges=db.session.query(__import__('app.models').models.ManualCharge).order_by(__import__('app.models').models.ManualCharge.created_at.desc()).limit(50).all()
+    
+    from app.models import ManualCharge
+    q=db.session.query(ManualCharge).order_by(ManualCharge.created_at.desc())
+    if current_user.role != 'admin': q=q.filter(ManualCharge.created_by_user_id==getattr(current_user,'id',None)).limit(10)
+    else: q=q.limit(50)
+    charges=q.all()
     return render_template('charges/index.html', form=form, charges=charges)
 @charges_bp.route('/suppliers', methods=['GET','POST'])
 @permission_required('suppliers')

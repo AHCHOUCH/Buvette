@@ -83,3 +83,14 @@ sqlite3 instance/buvette-manager.sqlite3 < migrations/0003_production_hardening.
 sqlite3 instance/buvette-manager.sqlite3 < migrations/0004_weekly_menu_i18n_permissions.sql
 sqlite3 instance/buvette-manager.sqlite3 < migrations/0005_mvp_closure.sql
 ```
+
+## Functional refinement: products, expenses, dashboards, lunch, and ledger
+
+- Administrators can create, edit, deactivate/archive, and safely delete unused products with password confirmation; used products remain protected to preserve order snapshots.
+- Cashiers may create buvette supplier expenses through the expenses workflow while supplier expenses remain separate from client balances.
+- The cashier dashboard is intentionally simplified to operational counts, payments, expenses created today, and quick actions; the admin dashboard keeps financial analytics and supports `daily`, `weekly`, `monthly`, and `3months` periods.
+- Lunch charging uses active plate variants configured on the weekly menu and stores the selected label/price snapshot. Active drink or lunch-extra products can be added with quantities and are included in the single lunch debit.
+- The client ledger remains balance-only for breakfast, lunch, and payments. The global ledger/report combines client income rows and supplier expense rows with income, expense, and net totals plus CSV export.
+- The application header now uses left/center/right zones so the logo and organization name stay visually centered in LTR and RTL layouts.
+- RTL pages use logical spacing and overflow guards so Arabic back buttons stay inside the viewport without horizontal page scroll.
+- Apply `migrations/0007_functional_refinement.sql` on existing databases before deployment.

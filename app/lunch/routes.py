@@ -16,12 +16,12 @@ lunch_bp=Blueprint('lunch', __name__, url_prefix='/lunch')
 @lunch_bp.route('/', methods=['GET','POST'])
 @permission_required('lunch.sell')
 def index():
-    svc=LunchService(db.session); clients=ClientService(db.session).list_clients(); plates=svc.todays_plates(); closed_today=date.today().weekday() >= 5
+    svc=LunchService(db.session); clients=ClientService(db.session).list_clients(); plates=svc.todays_plates(); drinks=svc.lunch_extras(); closed_today=date.today().weekday() >= 5
     if 'client_id' in request.form:
         try:
-            client_id=parse_required_int(request.form.get('client_id')); plate_id=parse_required_int(request.form.get('plate_id')); variant_id=parse_required_int(request.form.get('variant_id')); svc.charge_today(client_id, plate_id, variant_id, user_id=getattr(current_user,'id',None)); db.session.commit(); flash(_('flash.lunch_charged'),'success'); return redirect(url_for('lunch.index'))
+            client_id=parse_required_int(request.form.get('client_id')); plate_id=parse_required_int(request.form.get('plate_id')); variant_id=parse_required_int(request.form.get('variant_id')); drink_quantities={k.removeprefix('drink_qty_'): v for k,v in request.form.items() if k.startswith('drink_qty_')}; svc.charge_today(client_id, plate_id, variant_id, user_id=getattr(current_user,'id',None), drink_quantities=drink_quantities); db.session.commit(); flash(_('flash.lunch_charged'),'success'); return redirect(url_for('lunch.index'))
         except Exception as exc: handle_form_exception(exc, 'lunch.charge_failed')
-    return render_template('lunch/index.html', clients=clients, plates=plates, recent_clients=clients[:6], closed_today=closed_today)
+    return render_template('lunch/index.html', clients=clients, plates=plates, drinks=drinks, recent_clients=clients[:6], closed_today=closed_today)
 @lunch_bp.route('/menus', methods=['GET','POST'])
 @permission_required('lunch.manage')
 def menus():

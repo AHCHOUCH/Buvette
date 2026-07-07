@@ -2,14 +2,25 @@
 {% block title %}{{ _('dashboard.title') }} — {{ _('app.name') }}{% endblock %}
 {% block content %}
 <h1>{{ _('dashboard.title') }}</h1>
+{% if dashboard_mode == 'admin' %}
+<form class="card search-panel" method="get"><label for="period">{{ _('dashboard.period') }}</label><select id="period" name="period"><option value="daily" {% if metrics.period=='daily' %}selected{% endif %}>{{ _('period.daily') }}</option><option value="weekly" {% if metrics.period=='weekly' %}selected{% endif %}>{{ _('period.weekly') }}</option><option value="monthly" {% if metrics.period=='monthly' %}selected{% endif %}>{{ _('period.monthly') }}</option><option value="3months" {% if metrics.period=='3months' %}selected{% endif %}>{{ _('period.3months') }}</option></select><button class="btn btn-primary">{{ _('button.search') }}</button></form>
 <div class="dashboard-grid">
-  <article class="card metric-card"><h2>{{ _('dashboard.breakfast_revenue') }}</h2><div class="metric-value">{{ metrics.today_breakfast_revenue }} {{ _('currency.default') }}</div></article>
-  <article class="card metric-card"><h2>{{ _('dashboard.lunch_revenue') }}</h2><div class="metric-value">{{ metrics.today_lunch_revenue }} {{ _('currency.default') }}</div></article>
-  <article class="card metric-card"><h2>{{ _('dashboard.payments_today') }}</h2><div class="metric-value">{{ metrics.today_client_payments }} {{ _('currency.default') }}</div></article>
-  <article class="card metric-card"><h2>{{ _('dashboard.supplier_expenses_today') }}</h2><div class="metric-value">{{ metrics.today_supplier_expenses }} {{ _('currency.default') }}</div></article>
-  <article class="card metric-card"><h2>{{ _('dashboard.outstanding_debt') }}</h2>{% if metrics.outstanding_debt == 0 %}<p>{{ _('dashboard.no_debt') }}</p>{% else %}<div class="metric-value">{{ metrics.outstanding_debt }} {{ _('currency.default') }}</div>{% endif %}</article>
+  <article class="card metric-card"><h2>{{ _('dashboard.breakfast_revenue') }}</h2><div class="metric-value">{{ metrics.breakfast_revenue }} {{ _('currency.default') }}</div></article>
+  <article class="card metric-card"><h2>{{ _('dashboard.lunch_revenue') }}</h2><div class="metric-value">{{ metrics.lunch_revenue }} {{ _('currency.default') }}</div></article>
+  <article class="card metric-card"><h2>{{ _('dashboard.payments_today') }}</h2><div class="metric-value">{{ metrics.client_payments }} {{ _('currency.default') }}</div></article>
+  <article class="card metric-card"><h2>{{ _('dashboard.supplier_expenses_today') }}</h2><div class="metric-value">{{ metrics.supplier_expenses }} {{ _('currency.default') }}</div></article>
+  <article class="card metric-card"><h2>{{ _('ledger.net_total') }}</h2><div class="metric-value">{{ metrics.net_result }} {{ _('currency.default') }}</div></article>
+  <article class="card metric-card"><h2>{{ _('dashboard.outstanding_debt') }}</h2><div class="metric-value">{{ metrics.outstanding_debt }} {{ _('currency.default') }}</div></article>
   <article class="card metric-card"><h2>{{ _('dashboard.over_limit') }}</h2><div class="metric-value">{{ metrics.clients_over_limit }}</div></article>
 </div>
 <section class="card"><h2>{{ _('dashboard.avg_period') }}</h2><div class="dashboard-grid"><div>{{ _('dashboard.avg_breakfast') }}: <strong>{{ metrics.avg_breakfast_orders }}</strong></div><div>{{ _('dashboard.avg_lunch') }}: <strong>{{ metrics.avg_lunch_orders }}</strong></div><div>{{ _('dashboard.avg_payments') }}: <strong>{{ metrics.avg_payments }}</strong></div><div>{{ _('dashboard.avg_expenses') }}: <strong>{{ metrics.avg_supplier_expenses }}</strong></div></div></section>
-<div class="dashboard-grid"><section class="card"><h2>{{ _('dashboard.payments_today') }}</h2><table><tr><th>{{ _('field.client') }}</th><th>{{ _('field.amount') }}</th><th>Date</th></tr>{% for e in metrics.recent_payments %}<tr><td>{{ e.client.name }}</td><td>{{ e.amount }}</td><td>{{ e.timestamp.strftime('%Y-%m-%d') }}</td></tr>{% endfor %}</table></section><section class="card"><h2>{{ _('dashboard.breakfast_revenue') }} / {{ _('dashboard.lunch_revenue') }}</h2><table><tr><th>{{ _('field.client') }}</th><th>Description</th><th>{{ _('field.amount') }}</th></tr>{% for e in metrics.recent_charges %}<tr><td>{{ e.client.name }}</td><td>{{ e.description }}</td><td>{{ e.amount }}</td></tr>{% endfor %}</table></section></div>
+{% else %}
+<div class="dashboard-grid cashier-dashboard">
+  <article class="card metric-card"><h2>{{ _('dashboard.breakfast_orders_today') }}</h2><div class="metric-value">{{ metrics.today_breakfast_orders }}</div></article>
+  <article class="card metric-card"><h2>{{ _('dashboard.lunch_orders_today') }}</h2><div class="metric-value">{{ metrics.today_lunch_orders }}</div></article>
+  <article class="card metric-card"><h2>{{ _('dashboard.payments_today') }}</h2><div class="metric-value">{{ metrics.today_client_payments }} {{ _('currency.default') }}</div></article>
+  <article class="card metric-card"><h2>{{ _('dashboard.expenses_created_today') }}</h2><div class="metric-value">{{ metrics.today_supplier_expenses_created }} {{ _('currency.default') }}</div></article>
+</div>
+{% endif %}
+<section class="card"><h2>{{ _('dashboard.quick_actions') }}</h2><div class="button-row">{% for label, href in actions %}<a class="btn btn-primary" href="{{ href }}">{{ _(label) }}</a>{% endfor %}</div></section>
 {% endblock %}

@@ -113,6 +113,8 @@ class BreakfastProduct(db.Model):
     name = db.Column(db.String(120), nullable=False, unique=True, index=True)
     price = db.Column(db.Numeric(12, 2), nullable=False)
     is_active = db.Column(db.Boolean, nullable=False, default=True, index=True)
+    product_type = db.Column(db.String(30), nullable=False, default='breakfast', index=True)
+    archived_at = db.Column(db.DateTime(timezone=True), nullable=True)
     created_at = db.Column(db.DateTime(timezone=True), nullable=False, default=utcnow)
     updated_at = db.Column(db.DateTime(timezone=True), nullable=False, default=utcnow, onupdate=utcnow)
 
@@ -217,6 +219,20 @@ class LunchMenu(db.Model):
     )
 
 
+class LunchOrderItem(db.Model):
+    __tablename__ = 'lunch_order_items'
+    id = db.Column(db.Integer, primary_key=True)
+    lunch_order_id = db.Column(db.Integer, db.ForeignKey('lunch_orders.id', ondelete='CASCADE'), nullable=False, index=True)
+    product_id = db.Column(db.Integer, db.ForeignKey('breakfast_products.id'), nullable=True, index=True)
+    product_name_snapshot = db.Column(db.String(120), nullable=False)
+    quantity = db.Column(db.Integer, nullable=False)
+    unit_price_snapshot = db.Column(db.Numeric(12, 2), nullable=False)
+    total = db.Column(db.Numeric(12, 2), nullable=False)
+    order = db.relationship('LunchOrder', back_populates='items')
+    product = db.relationship('BreakfastProduct')
+    __table_args__ = (db.CheckConstraint('quantity > 0', name='ck_lunch_items_quantity_positive'), db.CheckConstraint('total >= 0', name='ck_lunch_items_total_non_negative'))
+
+
 class LunchOrder(db.Model):
     __tablename__ = "lunch_orders"
 
@@ -237,6 +253,7 @@ class LunchOrder(db.Model):
     menu = db.relationship("LunchMenu")
     food_plate = db.relationship("FoodPlate")
     variant = db.relationship("FoodPlateVariant")
+    items = db.relationship('LunchOrderItem', back_populates='order', cascade='all, delete-orphan')
 
     __table_args__ = (db.CheckConstraint("amount >= 0", name="ck_lunch_orders_amount_non_negative"),)
 
@@ -263,6 +280,7 @@ class ManualCharge(db.Model):
     category = db.Column(db.String(80), nullable=False, index=True)
     notes = db.Column(db.String(255), nullable=True)
     created_at = db.Column(db.DateTime(timezone=True), nullable=False, default=utcnow, index=True)
+    created_by_user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True, index=True)
 
     supplier = db.relationship("Supplier", back_populates="charges")
 
@@ -309,5 +327,5 @@ class Setting(db.Model):
 
 __all__ = [
     "BreakfastOrder", "BreakfastOrderItem", "BreakfastProduct", "Client", "LedgerEntry",
-    "LunchMenu", "WeeklyMenu", "DailyMenu", "FoodPlate", "FoodPlateVariant", "LunchOrder", "ManualCharge", "Payment", "Setting", "Supplier", "AuditLog", "User",
+    "LunchMenu", "WeeklyMenu", "DailyMenu", "FoodPlate", "FoodPlateVariant", "LunchOrder", "LunchOrderItem", "ManualCharge", "Payment", "Setting", "Supplier", "AuditLog", "User",
 ]
