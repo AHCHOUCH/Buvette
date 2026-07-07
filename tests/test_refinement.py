@@ -128,3 +128,45 @@ class UrgentBugfixTests(unittest.TestCase):
         self.login('administrator','administrator')
         fr=self.client.get('/lunch/').data.decode()
         self.assertIn('Petit — 20 DH', fr)
+
+class IdentitySettingsLedgerExportTests(unittest.TestCase):
+    def setUp(self):
+        self.app=create_app(); self.app.config.update(TESTING=True, WTF_CSRF_ENABLED=False)
+        self.ctx=self.app.app_context(); self.ctx.push(); db.drop_all(); db.create_all()
+        from app import _seed_data
+        _seed_data(); self.client=self.app.test_client()
+    def tearDown(self):
+        db.session.remove(); db.drop_all(); self.ctx.pop()
+    def login(self, username='administrator', password='administrator'):
+        return self.client.post('/auth/login', data={'username':username,'password':password}, follow_redirects=True)
+    def _make_entry(self, day):
+        from datetime import datetime
+        client=Client.query.first()
+        db.session.add(LedgerEntry(client_id=client.id, entry_type='debit', amount='7.00', running_balance='7.00', reference_type='breakfast', reference_id=day.day, description=f'Breakfast {day}', timestamp=datetime(day.year, day.month, day.day, 9, 0), created_by_user_id=1))
+        db.session.commit()
+    def test_login_hides_debug_credentials_and_uses_identity(self):
+        page=self.client.get('/auth/login').data.decode()
+        self.assertNotIn('DEBUG: administrator / administrator', page)
+        self.assertIn('Buvette Manager', page)
+        self.assertIn('Nom d’utilisateur', page)
+    def test_settings_identity_updates_title_header_and_colors(self):
+        self.login()
+        r=self.client.post('/settings/', data={'organization_name':'Buvette Test','organization_short_name':'bt','currency':'DH','footer_text':'Pied','debt_warning_default':'50','primary_color':'#123456','secondary_color':'#eeeeee','accent_color':'#abcdef','header_background_color':'#234567','sidebar_background_color':'#f0f0f0','button_color':'#345678','login_background_color':'#fafafa'}, follow_redirects=True)
+        body=r.data.decode(); self.assertIn('Paramètres enregistrés', body)
+        dash=self.client.get('/dashboard/').data.decode()
+        self.assertIn('Buvette Test', dash); self.assertIn('--header-bg:#234567', dash)
+    def test_admin_can_export_complete_and_empty_ledger_headers_and_audit(self):
+        self.login(); r=self.client.get('/ledger/export.csv?scope=all')
+        body=r.data.decode('utf-8-sig')
+        self.assertEqual(r.status_code, 200)
+        self.assertIn('date,client employee number,client name,transaction type,description,debit,credit,running balance,created by,reference/order id', body)
+        from app.models import AuditLog
+        self.assertEqual(AuditLog.query.filter_by(action='ledger.export').count(), 1)
+    def test_admin_filtered_export_respects_date_filters(self):
+        from datetime import date
+        self._make_entry(date(2026,7,1)); self._make_entry(date(2026,8,1)); self.login()
+        body=self.client.get('/ledger/export.csv?start_date=2026-07-01&end_date=2026-07-31').data.decode('utf-8-sig')
+        self.assertIn('Breakfast 2026-07-01', body); self.assertNotIn('Breakfast 2026-08-01', body)
+    def test_cashier_cannot_export_ledger_without_permission(self):
+        self.login('cashier','cashier')
+        self.assertEqual(self.client.get('/ledger/export.csv?scope=all').status_code, 403)

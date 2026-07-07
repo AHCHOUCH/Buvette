@@ -67,3 +67,10 @@ Dashboard average activity metrics use the last 30 days as the default period: b
 - Dropdown client selection is the reliable MVP selector for breakfast, lunch, and payments.
 - Empty or invalid selected IDs are validation errors and must not create traceback pages.
 - Historical lunch order amounts and labels remain unchanged after a variant price or label is edited.
+
+## Organization identity and ledger export rules
+
+- Organization name is the official display name for page titles, header, login, dashboard layout context, and ledger export metadata; blank values fall back to Buvette Manager.
+- Currency is configurable and defaults to DH. Exported monetary columns remain numeric; currency is declared in CSV metadata instead of mixed into amount cells.
+- Ledger export is a finance action requiring ledger permission. In the default roles, administrators may export and cashiers may not.
+- Every ledger export must create an audit log entry with scope/filter metadata and row count.

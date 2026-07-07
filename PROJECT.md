@@ -64,3 +64,11 @@ The application now includes database-backed users, role permissions, French/Ara
 ## Final MVP closure pass
 
 The branch now prioritizes reliable pilot operation: dropdown selectors replace fragile hidden client cards, weekly lunch orders no longer depend on legacy `menu_id`, Saturday/Sunday are closed by default, weekly plate/variant editing is available, historical lunch snapshots are preserved, the UI theme is lighter, and closure migration/deployment notes are documented.
+
+## 2026-07 identity/settings/export refinement
+
+- Settings are now the source of truth for organization name, short name, logo path, visual colors, footer text, and currency.
+- The base layout exposes identity colors through CSS variables and uses the configured name/logo in titles, header, footer, and login.
+- Login no longer displays development credentials in any mode; credentials are documented only for local development.
+- Ledger CSV export supports complete and filtered exports and records an audit event.
+- Migration `0006_identity_settings_ledger_export.sql` seeds the new key/value settings for existing SQLite databases.
