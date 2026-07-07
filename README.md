@@ -75,3 +75,11 @@ docker compose up --build
 ```
 
 Use the reset option only when preserving local data is not required.
+
+## Organization identity and ledger export
+
+Administrators configure the visible organization identity from **Paramètres**. The settings include organization name, optional short name, logo, UI colors, footer text, debt warning default, and currency. If no organization name is configured, the app falls back to **Buvette Manager**; currency defaults to **DH**.
+
+Uploaded logos are validated as `png`, `jpg`, `jpeg`, `webp`, or `svg` files and are stored below `app/static/uploads/` for display in the header, login screen, and settings preview. The default credentials remain for local development (`administrator` / `administrator`, `cashier` / `cashier`) but are intentionally not displayed on the login page.
+
+The admin ledger page provides CSV exports for the complete ledger or the currently filtered period. Filters include dates, client, and transaction/reference type. Exports use UTF-8 with BOM for spreadsheet compatibility, include clean numeric debit/credit/balance columns, include the configured organization and currency as metadata rows, and create an audit log entry. Cashiers cannot export the ledger unless permissions are expanded to include ledger access.

@@ -1,7 +1,9 @@
 """Routes for application settings."""
-from flask import Blueprint, flash, render_template
-from flask_login import login_required
+from pathlib import Path
+from flask import Blueprint, current_app, flash, render_template
 from app import db
+from app.audit import log_audit
+from app.i18n import _
 from app.permissions import permission_required
 from app.auth.service import set_password
 from app.settings.forms import GeneralSettingsForm
@@ -14,9 +16,16 @@ def index():
     svc=SettingsService(db.session); values=svc.all(); values['debt_warning_default']=float(values.get('debt_warning_default') or 0); form=GeneralSettingsForm(data=values)
     if form.validate_on_submit():
         try:
-            svc.save_general(form.organization_name.data, form.debt_warning_default.data, form.currency.data)
+            upload_root=Path(current_app.static_folder) / 'uploads'
+            svc.save_general(form.data, form.logo.data, upload_root)
             if form.administrator_password.data: set_password('administrator', form.administrator_password.data)
             if form.cashier_password.data: set_password('cashier', form.cashier_password.data)
-            db.session.commit(); flash('Settings saved.','success')
-        except ValueError as exc: db.session.rollback(); flash(str(exc),'danger')
-    return render_template('settings/index.html', form=form)
+            log_audit('settings.update','Setting',None,'Updated organization settings')
+            db.session.commit(); flash(_('settings.flash.saved'),'success')
+        except ValueError as exc: db.session.rollback(); flash(_(str(exc)),'danger')
+        except OSError:
+            current_app.logger.exception('Logo upload failed')
+            db.session.rollback(); flash(_('settings.error.logo_write_failed'),'danger')
+    elif form.errors:
+        flash(_('settings.error.validation'),'danger')
+    return render_template('settings/index.html', form=form, settings_values=svc.identity())

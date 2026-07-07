@@ -65,3 +65,11 @@
 - Completed weekly menu editing for working days, including plate and variant activation, labels, and prices while preserving lunch order snapshots.
 - Added translated UI strings for closure screens, logs, breakfast, payments, and menu actions; admin remains French/LTR and cashier Arabic/RTL.
 - Lightened the application theme and documented the final pilot limitations.
+
+## 2026-07-07 identity/settings/export refinement
+
+- Converted administrator settings UI to French labels, messages, and validation feedback through i18n keys.
+- Added functional organization identity settings, safe logo upload, CSS-variable theming, and dynamic layout/login branding.
+- Removed visible debug/default credentials from the login page while documenting them for development use.
+- Added protected ledger CSV export for all rows or current filters, with UTF-8 BOM, organization/currency metadata, and audit logging.
+- Added migration `0006_identity_settings_ledger_export.sql` for new identity setting keys.

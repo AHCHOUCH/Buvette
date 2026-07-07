@@ -72,3 +72,9 @@ Clients, breakfast, lunch, manual charges, payments, ledger, dashboard, and sett
 Localization now uses the `app/i18n` package with key-based translations and role-aware language selection. Administrator pages default to French/LTR and cashier pages default to Arabic/RTL. Templates receive `_`, `weekday_key`, `ui_lang`, and `ui_dir` from the application context.
 
 Authorization uses named permissions such as `lunch.manage`, `payments.create`, and `dangerous.delete`. Legacy route aliases are normalized for backward compatibility, but server-side decorators remain the security boundary.
+
+## Identity settings and ledger export
+
+The key/value `settings` table remains the source for organization identity. `SettingsService.identity()` normalizes defaults for templates, and the base layout maps configured colors to CSS variables instead of scattering inline color values. Logos are saved under `app/static/uploads/` and referenced by their static relative path.
+
+Ledger export is implemented in the ledger blueprint as an admin-protected CSV endpoint. It reuses `LedgerService.list_entries()` so exported rows and on-screen filters follow the same query behavior. Export actions are written to `AuditLog` through the centralized audit helper.

@@ -47,3 +47,10 @@ Cashier lunch workflows use large searchable client cards instead of small dropd
 - Main backgrounds use a light neutral surface (`#f6f7f9`) with white cards and a moderate teal header/sidebar accent.
 - Cashier selectors use reliable dropdowns for pilot operation. A richer searchable selector is deferred until after workflow stability is proven.
 - Lunch cashier screens show only client, today's plate, variant, and confirmation. Weekly editing stays on the menu admin screen.
+
+## Visual identity customization
+
+- Use CSS variables from the base layout for primary, accent, header, sidebar, button, and login background colors.
+- Keep defaults light: pale page background, white cards, teal/blue accents, clear active navigation, and large touch targets.
+- Display the configured logo where brand context matters, but always keep organization-name text as the fallback.
+- Administrator settings screens must remain fully French; cashier operational screens remain Arabic RTL after login.

@@ -1,12 +1,12 @@
 """Routes for authentication and session management."""
 
-from flask import Blueprint, current_app, flash, redirect, render_template, request, url_for
+from flask import Blueprint, flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required, login_user, logout_user
 
 from app.auth.forms import LoginForm
 from app import db
 from app.audit import log_audit
-from app.auth.service import authenticate, available_demo_users
+from app.auth.service import authenticate
 
 
 auth_bp = Blueprint("auth", __name__, url_prefix="/auth")
@@ -26,14 +26,14 @@ def login():
             login_user(user)
             log_audit('auth.login','User',user.id,'Successful login')
             db.session.commit()
-            flash(f"Welcome, {user.display_name}.", "success")
+            flash("Connexion réussie.", "success")
             next_url = request.args.get("next")
             return redirect(next_url or url_for("dashboard.index"))
         log_audit('auth.login_failed','User',None,f'Failed login for {form.username.data}', severity='WARNING')
         db.session.commit()
-        flash("Invalid username or password.", "danger")
+        flash("Identifiant ou mot de passe invalide.", "danger")
 
-    return render_template("auth/login.html", form=form, demo_users=available_demo_users(), show_demo=current_app.debug)
+    return render_template("auth/login.html", form=form)
 
 
 @auth_bp.post("/logout")
@@ -44,5 +44,5 @@ def logout():
     log_audit('auth.logout','User',getattr(current_user,'id',None),'Logout')
     db.session.commit()
     logout_user()
-    flash("You have been logged out.", "info")
+    flash("Déconnexion réussie.", "info")
     return redirect(url_for("auth.login"))

@@ -114,6 +114,7 @@ def _register_error_handlers(app: Flask) -> None:
 def _register_template_helpers(app: Flask) -> None:
     from app.i18n import _, lang, direction, weekday_key
     from app.permissions import has_permission
+    from app.settings.service import SettingsService
     @app.context_processor
     def helpers():
         groups = [
@@ -130,7 +131,8 @@ def _register_template_helpers(app: Flask) -> None:
         def variant_label(variant):
             key = getattr(variant, 'size_key', '') or getattr(variant, 'label', '')
             return _(f'variant.{key}') if key in ('small', 'big') else getattr(variant, 'label', '')
-        return {'_': _, 'weekday_key': weekday_key, 'variant_label': variant_label, 'ui_lang': lang(), 'ui_dir': direction(), 'nav_groups': filtered}
+        identity = SettingsService(db.session).identity()
+        return {'_': _, 'weekday_key': weekday_key, 'variant_label': variant_label, 'ui_lang': lang(), 'ui_dir': direction(), 'nav_groups': filtered, 'identity': identity}
 
 def _ensure_database(app: Flask) -> None:
     """Create the SQLite database automatically when no database file exists."""
@@ -225,7 +227,7 @@ def _seed_data() -> None:
         menus = ((0, "Monday hot meal", 6.00), (1, "Tuesday pasta", 6.00), (2, "Wednesday grill", 6.50), (3, "Thursday special", 6.00), (4, "Friday fish", 7.00))
         for weekday, name, price in menus:
             db.session.add(LunchMenu(weekday=weekday, name=name, price=price, is_active=True))
-    for key, value in {"organization_name": "Company Buvette", "debt_warning_default": "50.00", "currency": "DH"}.items():
+    for key, value in {"organization_name": "Buvette Manager", "debt_warning_default": "50.00", "currency": "DH", "primary_color": "#2f6f73", "secondary_color": "#eef2f4", "accent_color": "#0d6efd", "header_background_color": "#2f6f73", "sidebar_background_color": "#eaf3f3", "button_color": "#2f6f73", "login_background_color": "#f6f7f9"}.items():
         if not db.session.get(Setting, key):
             db.session.add(Setting(key=key, value=value))
     db.session.commit()
