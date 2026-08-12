@@ -39,6 +39,37 @@ TRANSLATIONS['fr'].update({
 TRANSLATIONS['ar'].update({
 'auth.login':'تسجيل الدخول','auth.username':'اسم المستخدم','auth.password':'كلمة المرور','auth.submit':'دخول','settings.title':'الإعدادات','settings.identity':'هوية المؤسسة','settings.organization_name':'اسم المؤسسة','settings.short_name':'الاسم المختصر','settings.logo':'الشعار','settings.logo_help':'الصيغ المقبولة: PNG أو JPG أو JPEG أو WEBP أو SVG آمن.','settings.colors':'الألوان','settings.primary_color':'اللون الرئيسي','settings.secondary_color':'اللون الثانوي','settings.accent_color':'لون التمييز','settings.header_background_color':'لون الرأس','settings.sidebar_background_color':'لون القائمة الجانبية','settings.button_color':'لون الأزرار','settings.login_background_color':'لون خلفية تسجيل الدخول','settings.footer_text':'نص التذييل','settings.currency':'العملة','settings.debt_warning_default':'حد تنبيه الدين','settings.passwords':'كلمات المرور','settings.administrator_password':'كلمة مرور المدير','settings.cashier_password':'كلمة مرور أمين الصندوق','settings.admin_links':'إدارة القوائم والمنتجات','settings.flash.saved':'تم حفظ الإعدادات.','settings.error.organization_required':'اسم المؤسسة ضروري.','settings.error.debt_negative':'حد تنبيه الدين لا يمكن أن يكون سالبا.','settings.error.invalid_color':'يجب أن يكون اللون بصيغة #RRGGBB.','settings.error.invalid_logo':'يجب أن يكون الشعار PNG أو JPG أو JPEG أو WEBP أو SVG آمن.','settings.error.logo_write_failed':'تعذر حفظ الشعار. حاول مرة أخرى.','settings.error.validation':'يرجى تصحيح الحقول المشار إليها.','ledger.export_all':'تصدير الكل','ledger.export_filtered':'تصدير الفترة المحددة'
 })
+
+TRANSLATIONS['fr'].update({
+    'lunch.menus.help':'Créez une semaine, puis ouvrez un jour pour gérer ses plats et ses tarifs.',
+    'lunch.menus.new_week':'Nouvelle semaine',
+    'lunch.menus.new_week_help':'Commencez un nouveau menu ou préparez la semaine à venir.',
+    'lunch.menus.label_example':'Ex. Menu du 17 août',
+    'lunch.menus.create':'Créer la semaine',
+    'lunch.menus.days':'jours',
+    'lunch.menus.plates':'plats',
+    'lunch.menus.week_hint':'Ouvrez un jour ci-dessous pour ajouter ou modifier ses plats.',
+    'lunch.menus.plate_name':'Nom du plat',
+    'lunch.menus.optional':'Facultatif',
+    'lunch.menus.status':'Statut',
+    'lunch.menus.variants':'Variantes et prix',
+    'lunch.menus.no_weeks':'Aucune semaine créée. Utilisez le formulaire ci-dessus pour commencer.'
+})
+TRANSLATIONS['ar'].update({
+    'lunch.menus.help':'أنشئ أسبوعا ثم افتح يوما لإدارة أطباقه وأسعاره.',
+    'lunch.menus.new_week':'أسبوع جديد',
+    'lunch.menus.new_week_help':'ابدأ قائمة جديدة أو حضّر الأسبوع القادم.',
+    'lunch.menus.label_example':'مثال: قائمة 17 غشت',
+    'lunch.menus.create':'إنشاء الأسبوع',
+    'lunch.menus.days':'أيام',
+    'lunch.menus.plates':'أطباق',
+    'lunch.menus.week_hint':'افتح يوما أدناه لإضافة أطباقه أو تعديلها.',
+    'lunch.menus.plate_name':'اسم الطبق',
+    'lunch.menus.optional':'اختياري',
+    'lunch.menus.status':'الحالة',
+    'lunch.menus.variants':'الأحجام والأسعار',
+    'lunch.menus.no_weeks':'لم يتم إنشاء أي أسبوع. استخدم النموذج أعلاه للبدء.'
+})
 TRANSLATIONS['fr'].update({
 'breakfast.edit_product':'Modifier le produit','flash.product_deleted':'Produit supprimé.','flash.product_duplicate':'Un produit actif porte déjà ce nom.','product_type.breakfast':'Petit déjeuner','product_type.drink':'Boisson','product_type.lunch_extra':'Extra déjeuner','charges.buvette_expenses':'Dépenses buvette','charges.recent':'Dépenses récentes','ledger.global':'Grand livre global','ledger.client':'Grand livre client','ledger.income':'Revenu','ledger.expense':'Dépense','ledger.net_total':'Résultat net','ledger.all':'Tous','ledger.source':'Source','dashboard.period':'Période','period.daily':'Aujourd’hui','period.weekly':'Cette semaine','period.monthly':'Ce mois','period.3months':'3 derniers mois','dashboard.breakfast_orders_today':'Commandes petit déjeuner du jour','dashboard.lunch_orders_today':'Commandes déjeuner du jour','dashboard.expenses_created_today':'Dépenses buvette créées aujourd’hui','dashboard.quick_actions':'Actions rapides','lunch.drinks':'Boissons','lunch.add_drink':'Ajouter une boisson','lunch.no_variant':'Aucune variante active pour ce plat.','settings.logo_label':'Logo','settings.organization':'Organisation'
 })
