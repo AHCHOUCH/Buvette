@@ -87,7 +87,7 @@
                   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                   <input type="hidden" name="action" value="update_variant">
                   <input type="hidden" name="variant_id" value="{{ v.id }}">
-                  <label><span>{{ _('field.variant') }}</span><input class="form-control" name="label" value="{{ v.label }}" required></label>
+                  <label><span>{{ _('field.variant') }}</span><input class="form-control" name="label" value="{{ variant_label(v) }}" required></label>
                   <label><span>{{ _('field.price') }}</span><input class="form-control" name="price" value="{{ v.price }}" inputmode="decimal" required></label>
                   <label><span>{{ _('lunch.menus.status') }}</span><select name="active"><option value="1" {% if v.active %}selected{% endif %}>{{ _('field.active') }}</option><option value="0" {% if not v.active %}selected{% endif %}>{{ _('button.deactivate') }}</option></select></label>
                   <button class="btn btn-secondary" type="submit">{{ _('button.save') }}</button>

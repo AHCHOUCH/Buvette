@@ -20,10 +20,11 @@
   {% if current_user.is_authenticated %}
   <nav class="app-sidebar app-topnav" aria-label="{{ _('nav.dashboard') }}">
     {% for group_label, items in nav_groups %}
-    <div class="nav-group">
-      <div class="nav-group-title">{{ _(group_label) }}</div>
+    {% set state = namespace(active=false) %}{% for label, endpoint, perm in items %}{% if endpoint == request.endpoint %}{% set state.active = true %}{% endif %}{% endfor %}
+    <details class="nav-group" {% if state.active %}open{% endif %}>
+      <summary class="nav-group-title"><span>{{ _(group_label) }}</span><span class="nav-dropdown-arrow" aria-hidden="true">▾</span></summary>
       <div class="nav-group-links">{% for label, endpoint, perm in items %}<a class="nav-button {% if request.endpoint==endpoint %}active{% endif %}" href="{{ url_for(endpoint) }}">{{ _(label) }}</a>{% endfor %}</div>
-    </div>
+    </details>
     {% endfor %}
   </nav>
   {% endif %}

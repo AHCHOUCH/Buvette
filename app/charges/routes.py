@@ -5,7 +5,7 @@ from werkzeug.security import check_password_hash
 from app import db
 from app.audit import log_audit
 from app.charges.forms import DeleteConfirmForm, ManualChargeForm, SupplierForm
-from app.charges.service import ChargeService, SupplierService
+from app.charges.service import CATEGORIES, ChargeService, SupplierService
 from app.permissions import permission_required
 from app.i18n import _
 from app.utils.errors import handle_form_exception
@@ -13,7 +13,7 @@ charges_bp=Blueprint('charges', __name__, url_prefix='/charges')
 @charges_bp.route('/', methods=['GET','POST'])
 @permission_required('expenses.create')
 def index():
-    svc=SupplierService(db.session); form=ManualChargeForm(); form.supplier_id.choices=[(s.id,s.name) for s in svc.list_suppliers()]
+    svc=SupplierService(db.session); form=ManualChargeForm(); form.supplier_id.choices=[(s.id,s.name) for s in svc.list_suppliers()]; form.category.choices=[(category, _(f'category.{category.lower()}')) for category in CATEGORIES]
     if form.validate_on_submit():
         try:
             charge=ChargeService(db.session).create_charge(form.supplier_id.data, form.amount.data, form.category.data, form.notes.data, getattr(current_user,'id',None))

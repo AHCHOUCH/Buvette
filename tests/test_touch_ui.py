@@ -25,6 +25,7 @@ class TouchInterfaceTests(unittest.TestCase):
         page = self.client.get("/dashboard/").data
         self.assertIn(b"app-topnav", page)
         self.assertNotIn(b"<aside", page)
+        self.assertIn(b'<details class="nav-group"', page)
         self.assertIn(b'data-scroll-page="up"', page)
         self.assertIn(b'data-scroll-page="down"', page)
 
@@ -44,6 +45,17 @@ class TouchInterfaceTests(unittest.TestCase):
         page = self.client.get("/dashboard/").data
         self.assertIn(b"admin-metrics", page)
         self.assertIn(b"dashboard-period", page)
+
+    def test_admin_navigation_groups_and_translated_settings_button(self):
+        self.login("administrator", "administrator")
+        page = self.client.get("/dashboard/").data.decode()
+        self.assertIn("Opérations", page)
+        self.assertIn("Gestion", page)
+        self.assertIn("Finance", page)
+        self.assertIn("Administration", page)
+        settings = self.client.get("/settings/").data.decode()
+        self.assertIn('value="Enregistrer"', settings)
+        self.assertNotIn('value="button.save"', settings)
 
 
 if __name__ == "__main__":

@@ -41,6 +41,27 @@ TRANSLATIONS['ar'].update({
 })
 
 TRANSLATIONS['fr'].update({
+    'field.category':'Catégorie',
+    'charges.save':'Enregistrer la dépense',
+    'category.groceries':'Épicerie',
+    'category.bakery':'Boulangerie',
+    'category.vegetables':'Légumes',
+    'category.cleaning':'Nettoyage',
+    'category.equipment':'Équipement',
+    'category.other':'Autre'
+})
+TRANSLATIONS['ar'].update({
+    'field.category':'الصنف',
+    'charges.save':'حفظ المصروف',
+    'category.groceries':'مواد غذائية',
+    'category.bakery':'مخبزة',
+    'category.vegetables':'خضر',
+    'category.cleaning':'نظافة',
+    'category.equipment':'معدات',
+    'category.other':'أخرى'
+})
+
+TRANSLATIONS['fr'].update({
     'dashboard.admin_help':'Vue synthétique de l’activité et des finances.',
     'dashboard.cashier_help':'Vos opérations du jour et raccourcis essentiels.',
     'dashboard.period_from':'Depuis le',
