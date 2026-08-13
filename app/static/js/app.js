@@ -122,6 +122,28 @@
     sync();
   }
 
+  function bindPageScrollButtons() {
+    document.querySelectorAll('[data-scroll-page]').forEach(function (button) {
+      button.addEventListener('click', function () {
+        var direction = button.getAttribute('data-scroll-page') === 'up' ? -1 : 1;
+        window.scrollBy({ top: direction * Math.max(320, window.innerHeight * 0.72), behavior: 'smooth' });
+      });
+    });
+  }
+
+  function bindNavigationDropdowns() {
+    var groups = Array.prototype.slice.call(document.querySelectorAll('.app-topnav details.nav-group'));
+    groups.forEach(function (group) {
+      group.addEventListener('toggle', function () {
+        if (!group.open) { return; }
+        groups.forEach(function (other) { if (other !== group) { other.open = false; } });
+      });
+    });
+    document.addEventListener('click', function (event) {
+      if (!event.target.closest('.app-topnav')) { groups.forEach(function (group) { group.open = false; }); }
+    });
+  }
+
   window.Buvette = { debounce: debounce, notify: notify, confirmAction: confirmAction, applyNumericKey: applyNumericKey };
   document.addEventListener('DOMContentLoaded', function () {
     autoFocus();
@@ -130,5 +152,7 @@
     bindNumericKeypad();
     bindClientSelector();
     bindLunchForm();
+    bindPageScrollButtons();
+    bindNavigationDropdowns();
   });
 }());

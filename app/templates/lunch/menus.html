@@ -1,7 +1,110 @@
 {% extends 'layouts/base.html' %}
 {% block title %}{{ _('lunch.menus.title') }} — {{ _('app.name') }}{% endblock %}
 {% block content %}
-<div class="page-header"><h1>{{ _('lunch.menus.title') }}</h1></div>
-<section class="card"><h2>{{ _('field.week') }}</h2><form method="post" class="form-grid"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="action" value="create_week"><label>{{ _('field.week_start') }}<input class="form-control" type="date" name="week_start_date" value="{{ today_week_start }}" required></label><label>{{ _('field.label') }}<input class="form-control" name="label"></label><button class="btn btn-primary btn-large">{{ _('button.save') }}</button></form></section>
-{% for week in weekly_menus %}<section class="card weekly-menu"><div class="page-header"><h2>{{ _('field.week') }} {{ week.week_start_date }} — {{ week.label }}</h2><form method="post"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="action" value="copy_previous"><input type="hidden" name="week_start_date" value="{{ week.week_start_date }}"><button class="btn btn-secondary">{{ _('button.copy_previous_week') }}</button></form></div>{% for day in week.days|sort(attribute='weekday') %}<div class="daily-menu"><h3>{{ _(weekday_key(day.weekday)) }} {{ day.service_date }} {% if day.weekday >= 5 %}<span class="badge bg-secondary">{{ _('lunch.closed') }}</span>{% endif %}</h3>{% if day.weekday < 5 %}<form method="post" class="form-grid"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="action" value="add_plate"><input type="hidden" name="daily_menu_id" value="{{ day.id }}"><input class="form-control" name="name" placeholder="{{ _('button.add_plate') }}" required><input class="form-control" name="description" placeholder="{{ _('field.description') }}"><button class="btn btn-primary">{{ _('button.add_plate') }}</button></form>{% if not day.plates %}<p class="empty-state">{{ _('lunch.none_configured') }}</p>{% endif %}{% for plate in day.plates %}<div class="plate-admin"><form method="post" class="form-grid"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="action" value="update_plate"><input type="hidden" name="plate_id" value="{{ plate.id }}"><input class="form-control" name="name" value="{{ plate.name }}" required><input class="form-control" name="description" value="{{ plate.description or '' }}"><select name="active"><option value="1" {% if plate.active %}selected{% endif %}>{{ _('field.active') }}</option><option value="0" {% if not plate.active %}selected{% endif %}>{{ _('button.deactivate') }}</option></select><button class="btn btn-secondary">{{ _('button.edit') }}</button></form>{% for v in plate.variants %}<form method="post" class="form-grid variant-row"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="action" value="update_variant"><input type="hidden" name="variant_id" value="{{ v.id }}"><input class="form-control" name="label" value="{{ v.label }}" required><input class="form-control" name="price" value="{{ v.price }}" inputmode="decimal" required><select name="active"><option value="1" {% if v.active %}selected{% endif %}>{{ _('field.active') }}</option><option value="0" {% if not v.active %}selected{% endif %}>{{ _('button.deactivate') }}</option></select><button class="btn btn-secondary">{{ _('button.save') }}</button></form>{% endfor %}</div>{% endfor %}{% endif %}</div>{% endfor %}</section>{% endfor %}
+<div class="page-header menu-page-heading">
+  <div>
+    <h1>{{ _('lunch.menus.title') }}</h1>
+    <p class="menu-intro">{{ _('lunch.menus.help') }}</p>
+  </div>
+</div>
+
+<section class="card menu-create-card" aria-labelledby="new-week-title">
+  <div class="menu-create-copy">
+    <h2 id="new-week-title">{{ _('lunch.menus.new_week') }}</h2>
+    <p>{{ _('lunch.menus.new_week_help') }}</p>
+  </div>
+  <form method="post" class="menu-create-form">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <input type="hidden" name="action" value="create_week">
+    <label>{{ _('field.week_start') }}
+      <input class="form-control" type="date" name="week_start_date" value="{{ today_week_start }}" required>
+    </label>
+    <label>{{ _('field.label') }}
+      <input class="form-control" name="label" placeholder="{{ _('lunch.menus.label_example') }}">
+    </label>
+    <button class="btn btn-primary" type="submit">{{ _('lunch.menus.create') }}</button>
+  </form>
+</section>
+
+<div class="menu-week-list">
+{% for week in weekly_menus %}
+  <details class="card weekly-menu" {% if loop.first %}open{% endif %}>
+    <summary class="week-summary">
+      <span class="week-summary-title">
+        <span class="week-chevron" aria-hidden="true"></span>
+        <span><strong>{{ week.label }}</strong><small>{{ week.week_start_date }}</small></span>
+      </span>
+      <span class="week-summary-meta">{{ week.days|length }} {{ _('lunch.menus.days') }}</span>
+    </summary>
+    <div class="week-content">
+      <div class="week-actions">
+        <p>{{ _('lunch.menus.week_hint') }}</p>
+        <form method="post">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <input type="hidden" name="action" value="copy_previous">
+          <input type="hidden" name="week_start_date" value="{{ week.week_start_date }}">
+          <button class="btn btn-secondary" type="submit">{{ _('button.copy_previous_week') }}</button>
+        </form>
+      </div>
+
+      <div class="menu-day-list">
+      {% for day in week.days|sort(attribute='weekday') %}
+        <details class="daily-menu" {% if loop.first %}open{% endif %}>
+          <summary class="day-summary">
+            <span><strong>{{ _(weekday_key(day.weekday)) }}</strong><small>{{ day.service_date }}</small></span>
+            {% if day.weekday >= 5 %}
+              <span class="badge bg-secondary">{{ _('lunch.closed') }}</span>
+            {% else %}
+              <span class="plate-count">{{ day.plates|length }} {{ _('lunch.menus.plates') }}</span>
+            {% endif %}
+          </summary>
+          {% if day.weekday < 5 %}
+          <div class="day-content">
+            <form method="post" class="add-plate-form">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <input type="hidden" name="action" value="add_plate">
+              <input type="hidden" name="daily_menu_id" value="{{ day.id }}">
+              <label><span>{{ _('field.name') }}</span><input class="form-control" name="name" placeholder="{{ _('lunch.menus.plate_name') }}" required></label>
+              <label><span>{{ _('field.description') }}</span><input class="form-control" name="description" placeholder="{{ _('lunch.menus.optional') }}"></label>
+              <button class="btn btn-primary" type="submit">{{ _('button.add_plate') }}</button>
+            </form>
+
+            {% if not day.plates %}<p class="menu-empty">{{ _('lunch.none_configured') }}</p>{% endif %}
+            {% for plate in day.plates %}
+            <article class="plate-admin">
+              <form method="post" class="plate-edit-form">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="action" value="update_plate">
+                <input type="hidden" name="plate_id" value="{{ plate.id }}">
+                <label><span>{{ _('field.name') }}</span><input class="form-control" name="name" value="{{ plate.name }}" required></label>
+                <label><span>{{ _('field.description') }}</span><input class="form-control" name="description" value="{{ plate.description or '' }}"></label>
+                <label><span>{{ _('lunch.menus.status') }}</span><select name="active"><option value="1" {% if plate.active %}selected{% endif %}>{{ _('field.active') }}</option><option value="0" {% if not plate.active %}selected{% endif %}>{{ _('button.deactivate') }}</option></select></label>
+                <button class="btn btn-secondary" type="submit">{{ _('button.save') }}</button>
+              </form>
+              <div class="variant-list" aria-label="{{ _('lunch.menus.variants') }}">
+              {% for v in plate.variants %}
+                <form method="post" class="variant-row">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                  <input type="hidden" name="action" value="update_variant">
+                  <input type="hidden" name="variant_id" value="{{ v.id }}">
+                  <label><span>{{ _('field.variant') }}</span><input class="form-control" name="label" value="{{ variant_label(v) }}" required></label>
+                  <label><span>{{ _('field.price') }}</span><input class="form-control" name="price" value="{{ v.price }}" inputmode="decimal" required></label>
+                  <label><span>{{ _('lunch.menus.status') }}</span><select name="active"><option value="1" {% if v.active %}selected{% endif %}>{{ _('field.active') }}</option><option value="0" {% if not v.active %}selected{% endif %}>{{ _('button.deactivate') }}</option></select></label>
+                  <button class="btn btn-secondary" type="submit">{{ _('button.save') }}</button>
+                </form>
+              {% endfor %}
+              </div>
+            </article>
+            {% endfor %}
+          </div>
+          {% endif %}
+        </details>
+      {% endfor %}
+      </div>
+    </div>
+  </details>
+{% else %}
+  <div class="card empty-state">{{ _('lunch.menus.no_weeks') }}</div>
+{% endfor %}
+</div>
 {% endblock %}

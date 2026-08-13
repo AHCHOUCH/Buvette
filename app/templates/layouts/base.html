@@ -17,10 +17,20 @@
     <div class="brand-center">{% if identity.logo_path %}<img class="brand-logo" src="{{ url_for('static', filename=identity.logo_path) }}" alt="{{ identity.organization_name }}">{% endif %}<div class="brand-name">{{ identity.organization_name }}</div></div>
     <div class="header-zone header-end">{% if current_user.is_authenticated %}<div class="app-user">{{ current_user.display_name }}</div>{% endif %}</div>
   </header>
+  {% if current_user.is_authenticated %}
+  <nav class="app-sidebar app-topnav" aria-label="{{ _('nav.dashboard') }}">
+    {% for group_label, items in nav_groups %}
+    <details class="nav-group">
+      <summary class="nav-group-title"><span>{{ _(group_label) }}</span><span class="nav-dropdown-arrow" aria-hidden="true">▾</span></summary>
+      <div class="nav-group-links">{% for label, endpoint, perm in items %}<a class="nav-button {% if request.endpoint==endpoint %}active{% endif %}" href="{{ url_for(endpoint) }}">{{ _(label) }}</a>{% endfor %}</div>
+    </details>
+    {% endfor %}
+  </nav>
+  {% endif %}
   <div class="app-shell">
-    {% if current_user.is_authenticated %}<aside class="app-sidebar" aria-label="{{ _('nav.dashboard') }}">{% for group_label, items in nav_groups %}<div class="nav-group"><div class="nav-group-title">{{ _(group_label) }}</div>{% for label, endpoint, perm in items %}<a class="nav-button {% if request.endpoint==endpoint %}active{% endif %}" href="{{ url_for(endpoint) }}">{{ _(label) }}</a>{% endfor %}</div>{% endfor %}</aside>{% endif %}
     <main id="main-content" class="app-main">{% include 'components/flash_messages.html' %}{% block content %}{% endblock %}</main>
   </div>
+  {% if current_user.is_authenticated %}<div class="scroll-controls" aria-label="{{ _('scroll.controls') }}"><button class="scroll-button" type="button" data-scroll-page="up" aria-label="{{ _('scroll.up') }}"><span class="scroll-icon" aria-hidden="true">↑</span><span>{{ _('scroll.up') }}</span></button><button class="scroll-button" type="button" data-scroll-page="down" aria-label="{{ _('scroll.down') }}"><span class="scroll-icon" aria-hidden="true">↓</span><span>{{ _('scroll.down') }}</span></button></div>{% endif %}
   <footer class="app-footer">{{ identity.footer_text or identity.organization_name }}</footer>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" defer></script>
   <script src="{{ url_for('static', filename='js/app.js') }}" defer></script>
