@@ -131,6 +131,19 @@
     });
   }
 
+  function bindNavigationDropdowns() {
+    var groups = Array.prototype.slice.call(document.querySelectorAll('.app-topnav details.nav-group'));
+    groups.forEach(function (group) {
+      group.addEventListener('toggle', function () {
+        if (!group.open) { return; }
+        groups.forEach(function (other) { if (other !== group) { other.open = false; } });
+      });
+    });
+    document.addEventListener('click', function (event) {
+      if (!event.target.closest('.app-topnav')) { groups.forEach(function (group) { group.open = false; }); }
+    });
+  }
+
   window.Buvette = { debounce: debounce, notify: notify, confirmAction: confirmAction, applyNumericKey: applyNumericKey };
   document.addEventListener('DOMContentLoaded', function () {
     autoFocus();
@@ -140,5 +153,6 @@
     bindClientSelector();
     bindLunchForm();
     bindPageScrollButtons();
+    bindNavigationDropdowns();
   });
 }());

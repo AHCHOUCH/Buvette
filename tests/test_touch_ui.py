@@ -54,8 +54,8 @@ class TouchInterfaceTests(unittest.TestCase):
         self.assertIn("Finance", page)
         self.assertIn("Administration", page)
         settings = self.client.get("/settings/").data.decode()
-        self.assertIn('value="Enregistrer"', settings)
-        self.assertNotIn('value="button.save"', settings)
+        self.assertIn('type="submit">Enregistrer</button>', settings)
+        self.assertNotIn("button.save", settings)
 
 
 if __name__ == "__main__":
