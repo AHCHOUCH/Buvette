@@ -122,6 +122,15 @@
     sync();
   }
 
+  function bindPageScrollButtons() {
+    document.querySelectorAll('[data-scroll-page]').forEach(function (button) {
+      button.addEventListener('click', function () {
+        var direction = button.getAttribute('data-scroll-page') === 'up' ? -1 : 1;
+        window.scrollBy({ top: direction * Math.max(320, window.innerHeight * 0.72), behavior: 'smooth' });
+      });
+    });
+  }
+
   window.Buvette = { debounce: debounce, notify: notify, confirmAction: confirmAction, applyNumericKey: applyNumericKey };
   document.addEventListener('DOMContentLoaded', function () {
     autoFocus();
@@ -130,5 +139,6 @@
     bindNumericKeypad();
     bindClientSelector();
     bindLunchForm();
+    bindPageScrollButtons();
   });
 }());
