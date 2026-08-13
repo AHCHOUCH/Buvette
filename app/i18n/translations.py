@@ -41,6 +41,23 @@ TRANSLATIONS['ar'].update({
 })
 
 TRANSLATIONS['fr'].update({
+    'dashboard.admin_help':'Vue synthétique de l’activité et des finances.',
+    'dashboard.cashier_help':'Vos opérations du jour et raccourcis essentiels.',
+    'dashboard.period_from':'Depuis le',
+    'scroll.controls':'Défilement de la page',
+    'scroll.up':'Haut',
+    'scroll.down':'Bas'
+})
+TRANSLATIONS['ar'].update({
+    'dashboard.admin_help':'ملخص النشاط والعمليات المالية.',
+    'dashboard.cashier_help':'عمليات اليوم والاختصارات الأساسية.',
+    'dashboard.period_from':'منذ',
+    'scroll.controls':'تمرير الصفحة',
+    'scroll.up':'أعلى',
+    'scroll.down':'أسفل'
+})
+
+TRANSLATIONS['fr'].update({
     'lunch.menus.help':'Créez une semaine, puis ouvrez un jour pour gérer ses plats et ses tarifs.',
     'lunch.menus.new_week':'Nouvelle semaine',
     'lunch.menus.new_week_help':'Commencez un nouveau menu ou préparez la semaine à venir.',

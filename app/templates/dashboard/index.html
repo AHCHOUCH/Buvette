@@ -1,26 +1,35 @@
 {% extends 'layouts/base.html' %}
 {% block title %}{{ _('dashboard.title') }} — {{ _('app.name') }}{% endblock %}
 {% block content %}
-<h1>{{ _('dashboard.title') }}</h1>
+<div class="page-header dashboard-heading"><div><h1>{{ _('dashboard.title') }}</h1><p>{{ _('dashboard.admin_help') if dashboard_mode == 'admin' else _('dashboard.cashier_help') }}</p></div></div>
+
 {% if dashboard_mode == 'admin' %}
-<form class="card search-panel" method="get"><label for="period">{{ _('dashboard.period') }}</label><select id="period" name="period"><option value="daily" {% if metrics.period=='daily' %}selected{% endif %}>{{ _('period.daily') }}</option><option value="weekly" {% if metrics.period=='weekly' %}selected{% endif %}>{{ _('period.weekly') }}</option><option value="monthly" {% if metrics.period=='monthly' %}selected{% endif %}>{{ _('period.monthly') }}</option><option value="3months" {% if metrics.period=='3months' %}selected{% endif %}>{{ _('period.3months') }}</option></select><button class="btn btn-primary">{{ _('button.search') }}</button></form>
-<div class="dashboard-grid">
-  <article class="card metric-card"><h2>{{ _('dashboard.breakfast_revenue') }}</h2><div class="metric-value">{{ metrics.breakfast_revenue }} {{ _('currency.default') }}</div></article>
-  <article class="card metric-card"><h2>{{ _('dashboard.lunch_revenue') }}</h2><div class="metric-value">{{ metrics.lunch_revenue }} {{ _('currency.default') }}</div></article>
-  <article class="card metric-card"><h2>{{ _('dashboard.payments_today') }}</h2><div class="metric-value">{{ metrics.client_payments }} {{ _('currency.default') }}</div></article>
-  <article class="card metric-card"><h2>{{ _('dashboard.supplier_expenses_today') }}</h2><div class="metric-value">{{ metrics.supplier_expenses }} {{ _('currency.default') }}</div></article>
-  <article class="card metric-card"><h2>{{ _('ledger.net_total') }}</h2><div class="metric-value">{{ metrics.net_result }} {{ _('currency.default') }}</div></article>
-  <article class="card metric-card"><h2>{{ _('dashboard.outstanding_debt') }}</h2><div class="metric-value">{{ metrics.outstanding_debt }} {{ _('currency.default') }}</div></article>
-  <article class="card metric-card"><h2>{{ _('dashboard.over_limit') }}</h2><div class="metric-value">{{ metrics.clients_over_limit }}</div></article>
+<form class="card dashboard-period" method="get">
+  <label for="period">{{ _('dashboard.period') }}</label>
+  <select id="period" name="period" onchange="this.form.submit()"><option value="daily" {% if metrics.period=='daily' %}selected{% endif %}>{{ _('period.daily') }}</option><option value="weekly" {% if metrics.period=='weekly' %}selected{% endif %}>{{ _('period.weekly') }}</option><option value="monthly" {% if metrics.period=='monthly' %}selected{% endif %}>{{ _('period.monthly') }}</option><option value="3months" {% if metrics.period=='3months' %}selected{% endif %}>{{ _('period.3months') }}</option></select>
+  <span>{{ _('dashboard.period_from') }} <strong>{{ metrics.period_start }}</strong></span>
+</form>
+<div class="dashboard-grid dashboard-metrics admin-metrics">
+  {% set admin_cards = [
+    ('dashboard.breakfast_revenue', metrics.breakfast_revenue, true, 'income'),
+    ('dashboard.lunch_revenue', metrics.lunch_revenue, true, 'income'),
+    ('dashboard.payments_today', metrics.client_payments, true, 'payment'),
+    ('dashboard.supplier_expenses_today', metrics.supplier_expenses, true, 'expense'),
+    ('ledger.net_total', metrics.net_result, true, 'net'),
+    ('dashboard.outstanding_debt', metrics.outstanding_debt, true, 'warning'),
+    ('dashboard.over_limit', metrics.clients_over_limit, false, 'warning')
+  ] %}
+  {% for label, value, money, tone in admin_cards %}<article class="metric-card metric-{{ tone }}"><h2>{{ _(label) }}</h2><div class="metric-value">{{ value }}{% if money %}<small>{{ _('currency.default') }}</small>{% endif %}</div></article>{% endfor %}
 </div>
-<section class="card"><h2>{{ _('dashboard.avg_period') }}</h2><div class="dashboard-grid"><div>{{ _('dashboard.avg_breakfast') }}: <strong>{{ metrics.avg_breakfast_orders }}</strong></div><div>{{ _('dashboard.avg_lunch') }}: <strong>{{ metrics.avg_lunch_orders }}</strong></div><div>{{ _('dashboard.avg_payments') }}: <strong>{{ metrics.avg_payments }}</strong></div><div>{{ _('dashboard.avg_expenses') }}: <strong>{{ metrics.avg_supplier_expenses }}</strong></div></div></section>
+<section class="card average-card"><h2>{{ _('dashboard.avg_period') }}</h2><div class="average-grid"><div><span>{{ _('dashboard.avg_breakfast') }}</span><strong>{{ metrics.avg_breakfast_orders }}</strong></div><div><span>{{ _('dashboard.avg_lunch') }}</span><strong>{{ metrics.avg_lunch_orders }}</strong></div><div><span>{{ _('dashboard.avg_payments') }}</span><strong>{{ metrics.avg_payments }}</strong></div><div><span>{{ _('dashboard.avg_expenses') }}</span><strong>{{ metrics.avg_supplier_expenses }}</strong></div></div></section>
 {% else %}
-<div class="dashboard-grid cashier-dashboard">
-  <article class="card metric-card"><h2>{{ _('dashboard.breakfast_orders_today') }}</h2><div class="metric-value">{{ metrics.today_breakfast_orders }}</div></article>
-  <article class="card metric-card"><h2>{{ _('dashboard.lunch_orders_today') }}</h2><div class="metric-value">{{ metrics.today_lunch_orders }}</div></article>
-  <article class="card metric-card"><h2>{{ _('dashboard.payments_today') }}</h2><div class="metric-value">{{ metrics.today_client_payments }} {{ _('currency.default') }}</div></article>
-  <article class="card metric-card"><h2>{{ _('dashboard.expenses_created_today') }}</h2><div class="metric-value">{{ metrics.today_supplier_expenses_created }} {{ _('currency.default') }}</div></article>
+<div class="dashboard-grid dashboard-metrics cashier-metrics">
+  <article class="metric-card metric-income"><h2>{{ _('dashboard.breakfast_orders_today') }}</h2><div class="metric-value">{{ metrics.today_breakfast_orders }}</div></article>
+  <article class="metric-card metric-income"><h2>{{ _('dashboard.lunch_orders_today') }}</h2><div class="metric-value">{{ metrics.today_lunch_orders }}</div></article>
+  <article class="metric-card metric-payment"><h2>{{ _('dashboard.payments_today') }}</h2><div class="metric-value">{{ metrics.today_client_payments }}<small>{{ _('currency.default') }}</small></div></article>
+  <article class="metric-card metric-expense"><h2>{{ _('dashboard.expenses_created_today') }}</h2><div class="metric-value">{{ metrics.today_supplier_expenses_created }}<small>{{ _('currency.default') }}</small></div></article>
 </div>
 {% endif %}
-<section class="card"><h2>{{ _('dashboard.quick_actions') }}</h2><div class="button-row">{% for label, href in actions %}<a class="btn btn-primary" href="{{ href }}">{{ _(label) }}</a>{% endfor %}</div></section>
+
+<section class="card quick-actions"><h2>{{ _('dashboard.quick_actions') }}</h2><div class="dashboard-action-grid">{% for label, href in actions %}<a class="dashboard-action" href="{{ href }}"><span>{{ _(label) }}</span><b aria-hidden="true">→</b></a>{% endfor %}</div></section>
 {% endblock %}
