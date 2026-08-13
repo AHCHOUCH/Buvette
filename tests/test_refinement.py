@@ -22,6 +22,13 @@ class RefinementTests(unittest.TestCase):
         self.login('cashier','cashier')
         page=self.client.get('/dashboard/').data.decode()
         self.assertIn('lang="ar"', page); self.assertIn('dir="rtl"', page); self.assertIn('العمليات', page)
+    def test_navigation_groups_render_as_adjacent_dropdowns(self):
+        self.login()
+        page=self.client.get('/dashboard/').data.decode()
+        self.assertIn('<nav class="app-navigation"', page)
+        self.assertEqual(page.count('<details class="nav-dropdown"'), 4)
+        self.assertIn('<div class="nav-dropdown-menu">', page)
+        self.assertNotIn('<aside class="app-sidebar"', page)
     def test_weekly_menu_order_snapshot_and_price(self):
         self.login()
         svc=LunchService(db.session); week=svc.create_week(date(2026,7,6), 'Test'); db.session.flush()
