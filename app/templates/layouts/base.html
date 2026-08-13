@@ -18,7 +18,7 @@
     <div class="header-zone header-end">{% if current_user.is_authenticated %}<div class="app-user">{{ current_user.display_name }}</div>{% endif %}</div>
   </header>
   <div class="app-shell">
-    {% if current_user.is_authenticated %}<aside class="app-sidebar" aria-label="{{ _('nav.dashboard') }}">{% for group_label, items in nav_groups %}<div class="nav-group"><div class="nav-group-title">{{ _(group_label) }}</div>{% for label, endpoint, perm in items %}<a class="nav-button {% if request.endpoint==endpoint %}active{% endif %}" href="{{ url_for(endpoint) }}">{{ _(label) }}</a>{% endfor %}</div>{% endfor %}</aside>{% endif %}
+    {% if current_user.is_authenticated %}<nav class="app-navigation" aria-label="{{ _('nav.dashboard') }}">{% for group_label, items in nav_groups %}<details class="nav-dropdown"{% if request.endpoint in items|map(attribute=1)|list %} data-active-group{% endif %}><summary class="nav-group-title">{{ _(group_label) }}</summary><div class="nav-dropdown-menu">{% for label, endpoint, perm in items %}<a class="nav-button {% if request.endpoint==endpoint %}active{% endif %}" href="{{ url_for(endpoint) }}"{% if request.endpoint==endpoint %} aria-current="page"{% endif %}>{{ _(label) }}</a>{% endfor %}</div></details>{% endfor %}</nav>{% endif %}
     <main id="main-content" class="app-main">{% include 'components/flash_messages.html' %}{% block content %}{% endblock %}</main>
   </div>
   <footer class="app-footer">{{ identity.footer_text or identity.organization_name }}</footer>

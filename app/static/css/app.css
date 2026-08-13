@@ -112,3 +112,66 @@ html, body { max-width: 100%; overflow-x: hidden; }
 [dir="rtl"] th, [dir="rtl"] td { text-align: right; }
 [dir="rtl"] .inline { margin-inline-start: var(--space-2); margin-inline-end: 0; }
 @media (max-width: 900px) { .app-header { grid-template-columns: 1fr; } .header-start,.header-end { justify-content: center; } }
+
+/* Horizontal grouped navigation: each section is an adjacent dropdown. */
+.app-shell { display: block; min-height: calc(100vh - 150px); }
+.app-navigation {
+  align-items: flex-start;
+  background: var(--sidebar-bg);
+  border-bottom: 1px solid var(--color-border);
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem;
+  min-height: 72px;
+  padding: .5rem 1rem;
+  position: relative;
+  z-index: 20;
+}
+.nav-dropdown { margin: 0; position: relative; }
+.nav-dropdown > summary {
+  align-items: center;
+  background: #fff;
+  border: 2px solid #d7e5e5;
+  border-radius: var(--radius);
+  color: var(--color-primary-dark);
+  cursor: pointer;
+  display: flex;
+  font-size: 1rem;
+  font-weight: 800;
+  gap: .75rem;
+  list-style: none;
+  min-height: var(--touch-min);
+  padding: .65rem 1rem;
+  white-space: nowrap;
+}
+.nav-dropdown > summary::-webkit-details-marker { display: none; }
+.nav-dropdown > summary::after { content: "\25BE"; font-size: .8em; }
+.nav-dropdown[open] > summary,
+.nav-dropdown[data-active-group] > summary { border-color: var(--color-accent); }
+.nav-dropdown-menu {
+  background: #fff;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  display: grid;
+  gap: .35rem;
+  inset-inline-start: 0;
+  min-width: 220px;
+  padding: .5rem;
+  position: absolute;
+  top: calc(100% + .35rem);
+}
+.nav-dropdown-menu .nav-button {
+  color: var(--color-text);
+  justify-content: flex-start;
+  min-height: 48px;
+  padding: .55rem .75rem;
+  white-space: nowrap;
+}
+.nav-dropdown-menu .nav-button:hover,
+.nav-dropdown-menu .nav-button:focus { background: color-mix(in srgb, var(--color-accent) 12%, white); }
+@media (max-width: 600px) {
+  .app-navigation { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .nav-dropdown > summary { justify-content: space-between; white-space: normal; }
+  .nav-dropdown-menu { max-width: calc(100vw - 2rem); min-width: 100%; }
+}
